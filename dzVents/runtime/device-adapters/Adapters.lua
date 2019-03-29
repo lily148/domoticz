@@ -41,6 +41,7 @@ local deviceAdapters = {
 	'uv_device',
 	'visibility_device',
 	'voltage_device',
+	'youless_device',
 	'waterflow_device',
 	'wind_device',
 	'zone_heating_device',
@@ -169,6 +170,7 @@ local function DeviceAdapters(dummyLogger)
 		['nightmode'] = { b = true, inv = 'Off' },
 		['set to white'] = { b = true, inv = 'Off' },
 		['set kelvin level'] = { b = true, inv = 'Off' },
+		['set color'] = { b = true },
 	}
 
 	return self

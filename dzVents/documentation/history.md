@@ -1,3 +1,70 @@
+[2.4.15]
+- Add option to use camera name in snapshot command
+- Add domoticz.settings.domoticzVersion
+- Add domoticz.settings.dzVentsVersion
+
+ 
+[2.4.14]
+- Added domoticz.settings.location.longitude and domoticz.settings.location.latitude 
+- Added check for- and message when call to openURL cannot open local (127.0.0.1)
+- **BREAKING CHANGE** :Changed domoticz.settings.location to domoticz.settings.location.name (domoticz settings location Name) 
+- prevent call to updateCounter with table
+
+[2.4.13]
+- Added domoticz.settings.location (domoticz settings location Name) 
+- Added domoticz.urlDecode method to convert an urlEncoded string to human readable format
+
+[2.4.12]
+- Added Managed counter (to counter)
+
+[2.4.11]
+- Added snapshot command to send Email with camera snapshot ( afterXXX() and withinXXX() options available)
+
+[2.4.10]
+- Added option to use afterXXX() and withinXXX() functions to updateSetPoint()
+- Changed parm from integer to string in call to device.update in function updateMode of device adapter zwave_thermostat_mode_device
+
+[2.4.9]
+- Added evohome hotwater device (state, mode, untilDate and setHotWater function)
+- Added mode and untilDate for evohome zone devices 
+- Added EVOHOME_MODE_FOLLOW_SCHEDULE as mode for evohome devices
+- Add speedMs and gustMs from wind devices 
+- bugfix for youless device (0 handling)
+- bugfix for time ( twilightstart and twilightend handling)
+- Added tests for twilight and device functions (hotwater) and attributes (evohome- and wind devices)
+- Fixed some date-range rule checking
+- Fixed integration tests by changing API call for creating a domoticz variable (saveuservariable was changed to adduservariable)
+- Fixed combined timer where one part of the combination is even or odd week. 
+- Added tests for combined timer with even/odd week 
+
+[2.4.8]
+- Added telegram as option for domoticz.notify
+
+[2.4.7]
+- Added support for civil twilight in rules
+
+[2.4.6]
+- Added Youless device
+- Added more to the documentation section for http requests
+- Made sure global_data is the first module to process. This fixes some unexpected issues if you need some globals initialized before the other scripts are loaded.
+
+[2.4.5]
+- Fixed a bug in date ranges for timer triggers (http://domoticz.com/forum/viewtopic.php?f=59&t=23109).
+
+[2.4.4]
+- Fixed rawTime and rawData so it shows leading zeros when values are below 10.
+- Fixed one wildcard issue. Should now work as expected.
+- Fixed a problem in Domoticz where you couldn't change the state of some door contact-like switches using the API or dzVents. That seems to work now.
+
+[2.4.3]
+- Fixed trigger wildcards. Now you can do `*aa*bb*cc` or `a*` which will require the target to start with an `a`
+- Added more EvoHome device types to the EvoHome device adapter.
+
+[2.4.2]
+- Fixed RGBW device adapter
+- Fixed EvoHome device adapter
+- Changed param ordering opentherm gateway command (https://www.domoticz.com/forum/viewtopic.php?f=59&t=21620&p=170469#p170469)
+
 [2.4.1]
 - Fixed week number problems on Windows
 - Fixed 'on date' rules to support dd/mm format (e.g. 01/02)

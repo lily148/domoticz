@@ -80,7 +80,7 @@ local VIRTUAL_DEVICES = {
 	-- increment SECPANEL_INDEX when adding a new one !!!!!!!!!!
 }
 
-local SECPANEL_INDEX = 51
+local SECPANEL_INDEX = 52
 
 local VAR_TYPES = {
 	INT = {0, 'varInteger', 42},
@@ -98,6 +98,7 @@ describe('Integration test', function ()
 		assert.is_true(TestTools.deleteAllDevices())
 		assert.is_true(TestTools.deleteAllVariables())
 		assert.is_true(TestTools.deleteAllHardware())
+		assert.is_true(TestTools.deleteAllCameras())
 		assert.is_true(TestTools.deleteAllScripts())
 	end)
 
@@ -135,7 +136,7 @@ describe('Integration test', function ()
 	local switchSilentResultsIdx
 
 	-- it('a', function() end)
-    --
+	--
 	describe('Settings', function()
 
 		it('Should initialize settings', function()
@@ -154,6 +155,17 @@ describe('Integration test', function ()
 			assert.is_true(ok)
 		end)
 	end)
+
+
+
+	describe('Camera', function()
+		it('should create a camera', function()
+			local ok
+			ok = TestTools.createCamera('dummy', DUMMY_HW)
+			assert.is_true(ok)
+		end)
+	end)
+
 
 	describe('Devices', function()
 
@@ -347,6 +359,14 @@ describe('Integration test', function ()
 
 		it('should create a http switch to trigger http requests', function()
 			local ok, idx = TestTools.createVirtualDevice(dummyIdx, VIRTUAL_DEVICES.HTTP_SWITCH[2], VIRTUAL_DEVICES.HTTP_SWITCH[1])
+			assert.is_true(ok)
+		end)
+	end)
+
+	describe('ManagedCounter', function()
+	 it('should create a Managed counter', function()
+			local ok
+			ok = TestTools.createManagedCounter('vdManagedCounter')
 			assert.is_true(ok)
 		end)
 	end)
@@ -602,7 +622,7 @@ describe('Integration test', function ()
 
 		it('Should have succeeded', function()
 
-			socket.sleep(25) -- the trigger for stage 2 has a delay set to 4 seconds (afterSec(4))
+			socket.sleep(25) -- 25 because of repeatAfter tests , the trigger for stage 2 has a delay set to 4 seconds (afterSec(4))
 
 			local switchDimmerResultsDevice
 			local varStringResultsDevice

@@ -1,5 +1,7 @@
 local scriptPath = globalvariables['script_path']
 package.path = package.path .. ';' .. scriptPath .. '?.lua'
+
+local Camera = require('Camera')
 local Device = require('Device')
 local Variable = require('Variable')
 local Time = require('Time')
@@ -32,11 +34,15 @@ local function Domoticz(settings)
 	if (_G.timeofday['SunriseInMinutes'] == 0 and _G.timeofday['SunsetInMinutes'] == 0) then
 		utils.log('No information about sunrise and sunset available. Please set lat/lng information in settings.', utils.LOG_ERROR)
 	end
-
+	
 	nowTime['isDayTime'] = timeofday['Daytime']
+	nowTime['isCivilDayTime'] = timeofday['Civildaytime']
+	nowTime['isCivilNightTime'] = timeofday['Civilnighttime']
 	nowTime['isNightTime'] = timeofday['Nighttime']
 	nowTime['sunriseInMinutes'] = timeofday['SunriseInMinutes']
 	nowTime['sunsetInMinutes'] = timeofday['SunsetInMinutes']
+	nowTime['civTwilightStartInMinutes'] = timeofday['CivTwilightStartInMinutes']
+	nowTime['civTwilightEndInMinutes'] = timeofday['CivTwilightEndInMinutes']
 
 	-- the new instance
 	local self = {
@@ -117,6 +123,7 @@ local function Domoticz(settings)
 		['EVOHOME_MODE_AUTO'] = 'Auto',
 		['EVOHOME_MODE_TEMPORARY_OVERRIDE'] = 'TemporaryOverride',
 		['EVOHOME_MODE_PERMANENT_OVERRIDE'] = 'PermanentOverride',
+		['EVOHOME_MODE_FOLLOW_SCHEDULE'] = 'FollowSchedule',
 		['INTEGER'] = 'integer',
 		['FLOAT'] = 'float',
 		['STRING'] = 'string',
@@ -132,6 +139,7 @@ local function Domoticz(settings)
 		['NSS_PUSHBULLET'] = 'pushbullet',
 		['NSS_PUSHOVER'] = 'pushover',
 		['NSS_PUSHSAFER'] = 'pushsafer',
+		['NSS_TELEGRAM'] = 'telegram',
 		['BASETYPE_DEVICE'] = 'device',
 		['BASETYPE_SCENE'] = 'scene',
 		['BASETYPE_GROUP'] = 'group',
@@ -139,6 +147,7 @@ local function Domoticz(settings)
 		['BASETYPE_SECURITY'] = 'security',
 		['BASETYPE_TIMER'] = 'timer',
 		['BASETYPE_HTTP_RESPONSE'] = 'httpResponse',
+
 
 		utils = {
 			_ = _,
@@ -153,7 +162,11 @@ local function Domoticz(settings)
 			urlEncode = function(s, strSub)
 				return utils.urlEncode(s, strSub)
 			end,
-
+			
+			urlDecode = function(s)
+				return utils.urlDecode(s)
+			end,
+			
 			round = function(x, n)
 				n = math.pow(10, n or 0)
 				x = x * n
@@ -180,7 +193,7 @@ local function Domoticz(settings)
 			toJSON = function(luaTable)
 				return utils.toJSON(luaTable)
 			end,
-
+			
 			rgbToHSB = function(r, g, b)
 				return utils.rgbToHSB(r,g,b)
 			end
@@ -236,6 +249,17 @@ local function Domoticz(settings)
 			self.sendCommand('SendEmail', subject .. '#' .. message .. '#' .. mailTo)
 		end
 	end
+	
+	
+	-- have domoticz send snapshot
+	function self.snapshot(cameraID, subject)
+		if tostring(cameraID):match("%a") then
+			cameraID = self.cameras(cameraID).id
+		end
+		local snapshotCommand = "SendCamera:" .. cameraID
+		return TimedCommand(self, snapshotCommand , subject, 'camera')       -- works with afterXXX
+	end
+
 
 	-- have domoticz send an sms
 	function self.sms(message)
@@ -296,7 +320,7 @@ local function Domoticz(settings)
 		end
 
 	end
-
+	
 	-- send a scene switch command
 	function self.setScene(scene, value)
 		utils.log('setScene is deprecated. Please use the scene object directly.', utils.LOG_INFO)
@@ -354,6 +378,12 @@ local function Domoticz(settings)
 		dumpTable(device, '> ')
 	end
 
+	-- doesn't seem to work well for some weird reasone
+	function self.logCamera(camera)
+		dumpTable(camera, '> ')
+	end
+
+	self.__cameras = {}
 	self.__devices = {}
 	self.__scenes = {}
 	self.__groups = {}
@@ -394,6 +424,9 @@ local function Domoticz(settings)
 		elseif (baseType == 'uservariable') then
 			cache = self.__variables
 			constructor = Variable
+		elseif (baseType == 'camera') then
+			cache = self.__cameras
+			constructor = Camera
 		else
 			-- ehhhh
 		end
@@ -580,6 +613,14 @@ local function Domoticz(settings)
 			return self._getObject('uservariable', id)
 		else
 			return self._setIterators({}, true, 'uservariable', false)
+		end
+	end
+
+	function self.cameras(id)
+		if (id ~= nil) then
+			return self._getObject('camera', id)
+		else
+			return self._setIterators({}, true, 'camera', false)
 		end
 	end
 
