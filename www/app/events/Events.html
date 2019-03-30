@@ -63,38 +63,7 @@
 					</button>
 					<ul class="dropdown-menu events-editor__menu">
 						<li ng-if=":: $ctrl.isInterpreterSupported('Blockly')">
-							<a class="events-editor__menu-item" tabindex="-1" href="javascript:void(0)" ng-click="$ctrl.createEvent('Blockly')">Blockly</a>
-						</li>
-						<li ng-if=":: $ctrl.isInterpreterSupported('Python')">
-							<a class="events-editor__menu-item" tabindex="-1" href="javascript:void(0)" ng-click="$ctrl.createEvent('Python')">Python</a>
-						</li>
-						<li ng-if=":: $ctrl.isInterpreterSupported('Lua')" class="dropdown-submenu">
-							<a class="events-editor__menu-item" tabindex="-1" href="javascript:void(0)">Lua</a>
-							<ul class="dropdown-menu events-editor__menu">
-								<li ng-repeat="template in ::$ctrl.luaTemplates">
-									<a tabindex="-1"
-									   class="events-editor__menu-item"
-									   href="javascript:void(0)"
-									   ng-click="$ctrl.createEvent('Lua', template.id)"
-									>
-										{{:: template.name}}
-									</a>
-								</li>
-							</ul>
-						</li>
-						<li ng-if=":: $ctrl.isInterpreterSupported('dzVents')" class="dropdown-submenu">
-							<a class="events-editor__menu-item" tabindex="-1" href="javascript:void(0)">dzVents</a>
-							<ul class="dropdown-menu events-editor__menu">
-								<li ng-repeat="template in ::$ctrl.dzVentsTemplates">
-									<a tabindex="-1"
-									   class="events-editor__menu-item"
-									   href="javascript:void(0)"
-									   ng-click="$ctrl.createEvent('dzVents', template.id)"
-									>
-										{{:: template.name}}
-									</a>
-								</li>
-							</ul>
+							<a class="events-editor__menu-item" tabindex="-1" href="javascript:void(0)" ng-click="$ctrl.createEvent('Blockly')">New Automation</a>
 						</li>
 					</ul>
 				</div>
@@ -116,4 +85,3 @@
 		</section>
 	</div>
 </div>
-

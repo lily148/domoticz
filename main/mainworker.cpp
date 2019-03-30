@@ -1271,15 +1271,15 @@ bool MainWorker::IsUpdateAvailable(const bool bIsForced)
 	std::string szURL;
 	if (!bIsBetaChannel)
 	{
-		szURL = "https://www.domoticz.com/download.php?channel=stable&type=version&system=" + m_szSystemName + "&machine=" + machine;
-		m_szDomoticzUpdateURL = "https://www.domoticz.com/download.php?channel=stable&type=release&system=" + m_szSystemName + "&machine=" + machine;
-		m_szDomoticzUpdateChecksumURL = "https://www.domoticz.com/download.php?channel=stable&type=checksum&system=" + m_szSystemName + "&machine=" + machine;
+		szURL = "https://update.ibeyondsmart.com/version_linux_armv7l.h";
+		m_szDomoticzUpdateURL = "https://update.ibeyondsmart.com/update.tgz";
+		m_szDomoticzUpdateChecksumURL = "https://update.ibeyondsmart.com/update.tgz.sha256sum";
 	}
 	else
 	{
-		szURL = "https://www.domoticz.com/download.php?channel=beta&type=version&system=" + m_szSystemName + "&machine=" + machine;
-		m_szDomoticzUpdateURL = "https://www.domoticz.com/download.php?channel=beta&type=release&system=" + m_szSystemName + "&machine=" + machine;
-		m_szDomoticzUpdateChecksumURL = "https://www.domoticz.com/download.php?channel=beta&type=checksum&system=" + m_szSystemName + "&machine=" + machine;
+		szURL = "https://update.ibeyondsmart.com/version_linux_armv7l.h";
+		m_szDomoticzUpdateURL = "https://update.ibeyondsmart.com/update.tgz";
+		m_szDomoticzUpdateChecksumURL = "https://update.ibeyondsmart.com/update.tgz.sha256sum";
 	}
 
 	std::string revfile;
@@ -2746,7 +2746,7 @@ void MainWorker::decode_InterfaceMessage(const int HwdID, const _eHardwareTypes 
 
 				if (pResponse->IRESPONSE868.ALECTOenabled)
 					WriteMessage("Alecto ACH2010    enabled");
-				
+
 				if (pResponse->IRESPONSE868.ALECTO5500enabled)
 					WriteMessage("Alecto WS5500     enabled");
 
