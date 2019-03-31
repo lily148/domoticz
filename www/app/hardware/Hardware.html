@@ -267,7 +267,7 @@
                 <option value="2">637 multi language</option>
             </select></td>
         </tr>
-        <tr><td colspan="2">Note: Any change will take effect after restarting Domoticz!</td></tr>
+        <tr><td colspan="2">Note: Any change will take effect after restarting Smart Gateway!</td></tr>
     </table>
 	<br>
 	<input type="hidden" id="idx" name="idx" value="-1">
@@ -791,7 +791,7 @@
 					<td align="right" style="width:110px"><span data-i18n="CRC message validation">CRC message validation</span>:</td>
 					<td>
 						<input type="checkbox" id="disablecrcp1" checked="checked" name="disablecrcp1"><label for="disablecrcp1"/><br />
-						<span data-i18n="Using CRC message validation prevents incorrect data from entering the Domoticz database.">Using CRC message validation prevents incorrect data from entering the Domoticz database.</span><br />
+						<span data-i18n="Using CRC message validation prevents incorrect data from entering the Smart Gateway database.">Using CRC message validation prevents incorrect data from entering the Smart Gateway database.</span><br />
 						<strong><font class="warning-text"><span data-i18n="Should normally not be disabled!"></span></font></strong>
 					</td>
 				</tr>
@@ -940,7 +940,7 @@
                     <td><br>
                         <ul>
                             <li>If you enter an API key all the other fields are optional.</li>
-                            <li>If you enter a Product Id, Secret and PIN but leave the API Key blank Domoticz will attempt to grab an API key from Nest using that information.</li>
+                            <li>If you enter a Product Id, Secret and PIN but leave the API Key blank Smart Gateway will attempt to grab an API key from Nest using that information.</li>
                             <li>To obtain an API Key you will need to register with Nest. See the Domoticz Wiki (<a href="http://www.domoticz.com/wiki/NestDeveloperApiKey">NestDeveloperApiKey</a>) for more information.</li>
                         </ul>
                     </td>
@@ -1108,11 +1108,7 @@
 						<option value="0">None</option>
 						</select>
 					<br />
-					<span>Select the Topic('s) Domoticz will use to publish outgoing messages. <br />
-						<b>Flat</b> - publish outgoing messagen on topic domoticz/out.<br />
-						<b>Hierarchical</b> - publish outgoing messagen on topic domoticz/out/${floorplan name}/${plan name}.<br />
-						<b>Combined</b> - Use both <b>Flat</b> and <b>Hierarchical</b> topic schemes.<br />
-						<b>None</b> - disable outgoing messages.<br />
+					<span>Select the Topic('s) Smart Gateway will use to publish outgoing messages. <br />
 						<br />
 						Note that <b>Hierarchical</b> only reports sensor updates for sensors that are placed on a floorplan/plan.
 					</td>
@@ -1147,9 +1143,7 @@
 						<option value="1">Gateway Node Name</option>
 						</select>
 					<br />
-					<span>Select the Topic(s) where Domoticz publish/receive messages.<br />
-						<b>MyMQTT (default)</b> - domoticz/in/MyMQTT, domoticz/out/MyMQTT <br />
-						<b>Gateway Node Name</b> - domoticz/in/GatewayNodeName, domoticz/out/GatewayNodeName (GatewayNodeName is specified in the Name field (above))<br />
+					<span>Select the Topic(s) where Smart Gateway publish/receive messages.<br />
 						<br />
 					</td>
 				</tr>
