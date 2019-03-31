@@ -47,7 +47,7 @@ namespace http {
 			m_authmethod(AUTH_LOGIN),
 			mySessionStore(NULL),
 			myRequestHandler(doc_root, this),
-			m_DigistRealm("Domoticz.com"),
+			m_DigistRealm("SmartGateway"),
 			m_session_clean_timer(m_io_service, boost::posix_time::minutes(1)),
 			m_sessions(), // Rene, make sure we initialize m_sessions first, before starting a server
 			myServer(server_factory::create(settings, myRequestHandler))

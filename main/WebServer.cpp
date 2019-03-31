@@ -307,7 +307,7 @@ namespace http {
 
 			_log.Log(LOG_STATUS, "WebServer(%s) started on address: %s with port %s", m_server_alias.c_str(), settings.listening_address.c_str(), settings.listening_port.c_str());
 
-			m_pWebEm->SetDigistRealm("Domoticz.com");
+			m_pWebEm->SetDigistRealm("SmartGateway");
 			m_pWebEm->SetSessionStore(this);
 
 			if (!bIgnoreUsernamePassword)
@@ -14056,8 +14056,8 @@ namespace http {
 											root["result"][ii]["d"] = szTime;
 
 											//float TotalValue = float(actValue - ulFirstValue);
-											
-											//prevents graph from going crazy if the meter counter resets 
+
+											//prevents graph from going crazy if the meter counter resets
 											float TotalValue = (actValue >= ulFirstValue) ? float(actValue - ulFirstValue) : actValue;
 
 											//if (TotalValue != 0)
