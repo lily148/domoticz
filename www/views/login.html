@@ -8,7 +8,7 @@
     background-image: -moz-linear-gradient(top, #fff, #eee);
     background-image: -ms-linear-gradient(top, #fff, #eee);
     background-image: -o-linear-gradient(top, #fff, #eee);
-    background-image: linear-gradient(top, #fff, #eee);  
+    background-image: linear-gradient(top, #fff, #eee);
     height: 240px;
     width: 300px;
     margin: -150px 0 0 -180px;
@@ -19,7 +19,7 @@
     z-index: 0;
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
-    border-radius: 3px;  
+    border-radius: 3px;
 }
 
 #login:before
@@ -55,17 +55,17 @@
     height: 1px;
     position: absolute;
     top: 15px;
-    width: 60px;   
+    width: 60px;
 }
 
 #login h1:after
-{ 
+{
     background-image: -webkit-gradient(linear, left top, right top, from(#777), to(#fff));
     background-image: -webkit-linear-gradient(left, #777, #fff);
     background-image: -moz-linear-gradient(left, #777, #fff);
     background-image: -ms-linear-gradient(left, #777, #fff);
     background-image: -o-linear-gradient(left, #777, #fff);
-    background-image: linear-gradient(left, #777, #fff);      
+    background-image: linear-gradient(left, #777, #fff);
     right: 0;
 }
 
@@ -128,7 +128,7 @@
 }
 
 #submit
-{		
+{
     background-color: #ffb94b;
     background-image: -webkit-gradient(linear, left top, left bottom, from(#fddb6f), to(#ffb94b));
     background-image: -webkit-linear-gradient(top, #fddb6f, #ffb94b);
@@ -136,17 +136,17 @@
     background-image: -ms-linear-gradient(top, #fddb6f, #ffb94b);
     background-image: -o-linear-gradient(top, #fddb6f, #ffb94b);
     background-image: linear-gradient(top, #fddb6f, #ffb94b);
-    
+
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
     border-radius: 3px;
-    
+
     text-shadow: 0 1px 0 rgba(255,255,255,0.5);
-    
+
      -moz-box-shadow: 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
      -webkit-box-shadow: 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
-     box-shadow: 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset;    
-    
+     box-shadow: 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.3) inset;
+
     border-width: 1px;
     border-style: solid;
     border-color: #d69e31 #e3a037 #d5982d #e3a037;
@@ -161,7 +161,7 @@
 }
 
 #submit:hover,#submit:focus
-{		
+{
     background-color: #fddb6f;
     background-image: -webkit-gradient(linear, left top, left bottom, from(#ffb94b), to(#fddb6f));
     background-image: -webkit-linear-gradient(top, #ffb94b, #fddb6f);
@@ -169,15 +169,15 @@
     background-image: -ms-linear-gradient(top, #ffb94b, #fddb6f);
     background-image: -o-linear-gradient(top, #ffb94b, #fddb6f);
     background-image: linear-gradient(top, #ffb94b, #fddb6f);
-}	
+}
 
 #submit:active
-{		
+{
     outline: none;
-   
+
      -moz-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
      -webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
-     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;		
+     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
 }
 
 #submit::-moz-focus-inner
@@ -187,7 +187,7 @@
 
 #actions a
 {
-    color: #3151A2;    
+    color: #3151A2;
     float: right;
     line-height: 35px;
     margin-left: 10px;
@@ -195,7 +195,7 @@
 </style>
 <div id="login">
 <form name="login-form" ng-submit="DoLogin()" form-autofill-fix>
-    <h1>Domoticz</h1>
+    <h1>Smart Gateway</h1>
     <fieldset id="inputs">
         <input type="text" autocapitalize="none" autocorrect="off" id="username" name="username" placeholder="Username" autofocus ng-required />
         <input type="password" id="password" name="password" placeholder="Password" ng-required />
@@ -205,7 +205,7 @@
     </fieldset>
     <fieldset id="actions">
 		<input type="submit" id="submit" value="Login" />
-        <a href="http://www.domoticz.com">www.domoticz.com</a>
+        <a href="https://ibeyondsmart.com">IBEYOND SMART SDN BHD</a>
     </fieldset>
 </form>
 </div>
