@@ -19,10 +19,10 @@ if [ ${OS} = "darwin" ]; then
   sleep 15
   launchctl load /System/Library/LaunchAgents/com.domoticz.server.plist
 else
-  sudo service domoticz.sh stop
+#  sudo service domoticz.sh stop
   sudo systemctl stop domoticz.service
   echo "please standby... (waiting 15 seconds)"
   sleep 15
-  sudo service domoticz.sh start
+#  sudo service domoticz.sh start
   sudo systemctl start domoticz.service
 fi
