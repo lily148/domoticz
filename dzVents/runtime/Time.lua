@@ -16,18 +16,11 @@ local function getTimezone()
 	return diff
 end
 
-function string:split(sep)
-	local sep, fields = sep or ":", {}
-	local pattern = string.format("([^%s]+)", sep)
-	self:gsub(pattern, function(c) fields[#fields + 1] = c end)
-	return fields
-end
-
 local LOOKUP = { 'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat' }
 
 local function getSMs(s)
 	local ms = 0
-	local parts = string.split(s, '.') -- do string splittin instead of math stuff.. can't seem to get the floating points right
+	local parts = utils.stringSplit(s, '.') -- do string splittin instead of math stuff.. can't seem to get the floating points right
 	s = tonumber(parts[1])
 	if (parts[2] ~= nil) then
 		-- should always be three digits!!
@@ -513,12 +506,12 @@ local function Time(sDate, isUTC, _testMS)
 		end
 
 		local getParts = function(set)
-			local day, month = string.match(set, '([0-9]+)/([0-9]+)')
-			return tonumber(day), tonumber(month)
+			local day, month = string.match(set, '([0-9%*]+)/([0-9%*]+)')
+			return day and tonumber( day ), month and tonumber( month )
 		end
 
 		--now get the ranges
-		for fromSet, toSet in string.gmatch(dates, '([0-9%/]*)-([0-9%/]*)') do
+		for fromSet, toSet in string.gmatch(dates, '([0-9%/%*]*)-([0-9%/%*]*)') do
 			local fromDay, toDay, fromMonth, toMonth
 
 			if (isEmpty(fromSet) and not isEmpty(toSet)) then
@@ -1009,8 +1002,6 @@ local function Time(sDate, isUTC, _testMS)
 			return false
 		end
 		updateTotal(res)
-
-
 
 		res = self.ruleIsOnDay(rule) -- range
 		if (res == false) then

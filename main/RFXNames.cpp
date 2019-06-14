@@ -588,6 +588,7 @@ const char *RFX_Type_SubType_Desc(const unsigned char dType, const unsigned char
 	{ pTypeRAIN, sTypeRAIN7, "Alecto" },
 	{ pTypeRAIN, sTypeRAIN8, "Davis" },
 	{ pTypeRAIN, sTypeRAINWU, "WWW" },
+	{ pTypeRAIN, sTypeRAINByRate, "RainByRate" },
 
 	{ pTypeWIND, sTypeWIND1, "WTGR800" },
 	{ pTypeWIND, sTypeWIND2, "WGR800" },
@@ -1638,7 +1639,11 @@ void GetLightStatus(
 			lstatus = "On";
 			break;
 		case Color_SetBrightnessLevel:
-			lstatus = "Set Level";
+			sprintf(szTmp, "Set Level: %d %%", llevel);
+			if (sValue != "0")
+				lstatus = szTmp;
+			else
+				lstatus = "Off";
 			break;
 		case Color_SetColorToWhite:
 			lstatus = "Set to White";
