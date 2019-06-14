@@ -633,6 +633,7 @@ namespace http {
 			RegisterCommandCode("zwavecancel", boost::bind(&CWebServer::Cmd_ZWaveCancel, this, _1, _2, _3));
 			RegisterCommandCode("applyzwavenodeconfig", boost::bind(&CWebServer::Cmd_ApplyZWaveNodeConfig, this, _1, _2, _3));
 			RegisterCommandCode("requestzwavenodeconfig", boost::bind(&CWebServer::Cmd_ZWaveRequestNodeConfig, this, _1, _2, _3));
+			RegisterCommandCode("requestzwavenodeinfo", boost::bind(&CWebServer::Cmd_ZWaveRequestNodeInfo, this, _1, _2, _3));
 			RegisterCommandCode("zwavestatecheck", boost::bind(&CWebServer::Cmd_ZWaveStateCheck, this, _1, _2, _3));
 			RegisterCommandCode("zwavereceiveconfigurationfromothercontroller", boost::bind(&CWebServer::Cmd_ZWaveReceiveConfigurationFromOtherController, this, _1, _2, _3));
 			RegisterCommandCode("zwavesendconfigurationtosecondcontroller", boost::bind(&CWebServer::Cmd_ZWaveSendConfigurationToSecondaryController, this, _1, _2, _3));
@@ -7749,6 +7750,9 @@ namespace http {
 				m_mainworker.m_eventsystem.SetEnabled(m_sql.m_bEnableEventSystem);
 				m_mainworker.m_eventsystem.StartEventSystem();
 			}
+			std::string EnableEventSystemFullURLLog = request::findValue(&req, "EventSystemLogFullURL");
+			m_sql.m_bEnableEventSystemFullURLLog = EnableEventSystemFullURLLog == "on" ? true : false;
+			m_sql.UpdatePreferencesVar("EventSystemLogFullURL", (int)m_sql.m_bEnableEventSystemFullURLLog);
 
 			rnOldvalue = 0;
 			m_sql.GetPreferencesVar("DisableDzVentsSystem", rnOldvalue);
@@ -8109,6 +8113,7 @@ namespace http {
 							{
 								root["result"][ii]["Type"] = "Scene";
 								root["result"][ii]["TypeImg"] = "scene";
+								root["result"][ii]["Image"] = "Push";
 							}
 							else
 							{
@@ -8162,7 +8167,7 @@ namespace http {
 				}
 			}
 
-			char szData[250];
+			char szData[320];
 			if (totUserDevices == 0)
 			{
 				//All
@@ -9499,33 +9504,43 @@ namespace http {
 
 							std::vector<std::vector<std::string> > result2;
 
-							if (dSubType != sTypeRAINWU)
+							if (dSubType == sTypeRAINWU || dSubType == sTypeRAINByRate)
 							{
 								result2 = m_sql.safe_query(
-									"SELECT MIN(Total), MAX(Total) FROM Rain WHERE (DeviceRowID='%q' AND Date>='%q')", sd[0].c_str(), szDate);
+									"SELECT Total, Rate FROM Rain WHERE (DeviceRowID='%q' AND Date>='%q') ORDER BY ROWID DESC LIMIT 1", sd[0].c_str(), szDate);
 							}
 							else
 							{
 								result2 = m_sql.safe_query(
-									"SELECT Total, Total FROM Rain WHERE (DeviceRowID='%q' AND Date>='%q') ORDER BY ROWID DESC LIMIT 1", sd[0].c_str(), szDate);
+									"SELECT MIN(Total), MAX(Total) FROM Rain WHERE (DeviceRowID='%q' AND Date>='%q')", sd[0].c_str(), szDate);
 							}
+
 							if (!result2.empty())
 							{
 								double total_real = 0;
 								float rate = 0;
 								std::vector<std::string> sd2 = result2[0];
-								if (dSubType != sTypeRAINWU)
+
+								if (dSubType == sTypeRAINWU || dSubType == sTypeRAINByRate)
+								{
+									total_real = atof(sd2[0].c_str());
+								}
+								else
 								{
 									double total_min = atof(sd2[0].c_str());
 									double total_max = atof(strarray[1].c_str());
 									total_real = total_max - total_min;
 								}
+
+								total_real *= AddjMulti;
+								if (dSubType == sTypeRAINByRate)
+								{
+									rate = static_cast<float>(atof(sd2[1].c_str()) / 10000.0f);
+								}
 								else
 								{
-									total_real = atof(sd2[1].c_str());
+									rate = (static_cast<float>(atof(strarray[0].c_str())) / 100.0f)*float(AddjMulti);
 								}
-								total_real *= AddjMulti;
-								rate = (static_cast<float>(atof(strarray[0].c_str())) / 100.0f)*float(AddjMulti);
 
 								sprintf(szTmp, "%.1f", total_real);
 								root["result"][ii]["Rain"] = szTmp;
@@ -10619,6 +10634,7 @@ namespace http {
 						sprintf(szTmp, "%g %s", m_sql.m_weightscale * atof(sValue.c_str()), m_sql.m_weightsign.c_str());
 						root["result"][ii]["Data"] = szTmp;
 						root["result"][ii]["HaveTimeout"] = false;
+						root["result"][ii]["SwitchTypeVal"] = (m_sql.m_weightsign=="kg") ? 0 : 1;
 					}
 					else if (dType == pTypeUsage)
 					{
@@ -10816,7 +10832,7 @@ namespace http {
 						szAttachmentName = szVar + ".db";
 					}
 				}
-				reply::set_content_from_file(&rep, OutputFileName, szAttachmentName, true);
+				reply::set_download_file(&rep, OutputFileName, szAttachmentName);
 			}
 		}
 
@@ -12834,6 +12850,10 @@ namespace http {
 				{
 					root["EnableEventScriptSystem"] = nValue;
 				}
+				else if (Key == "EventSystemLogFullURL")
+				{
+					root["EventSystemLogFullURL"] = nValue;
+				}
 				else if (Key == "DisableDzVentsSystem")
 				{
 					root["DisableDzVentsSystem"] = nValue;
@@ -14540,16 +14560,16 @@ namespace http {
 						}
 					}
 					//add today (have to calculate it)
-					if (dSubType != sTypeRAINWU)
+					if (dSubType == sTypeRAINWU || dSubType == sTypeRAINByRate)
 					{
 						result = m_sql.safe_query(
-							"SELECT MIN(Total), MAX(Total), MAX(Rate) FROM Rain WHERE (DeviceRowID=%" PRIu64 " AND Date>='%q')",
+							"SELECT Total, Total, Rate FROM Rain WHERE (DeviceRowID=%" PRIu64 " AND Date>='%q') ORDER BY ROWID DESC LIMIT 1",
 							idx, szDateEnd);
 					}
 					else
 					{
 						result = m_sql.safe_query(
-							"SELECT Total, Total, Rate FROM Rain WHERE (DeviceRowID=%" PRIu64 " AND Date>='%q') ORDER BY ROWID DESC LIMIT 1",
+							"SELECT MIN(Total), MAX(Total), MAX(Rate) FROM Rain WHERE (DeviceRowID=%" PRIu64 " AND Date>='%q')",
 							idx, szDateEnd);
 					}
 					if (!result.empty())
@@ -14561,13 +14581,13 @@ namespace http {
 						int rate = atoi(sd[2].c_str());
 
 						double total_real = 0;
-						if (dSubType != sTypeRAINWU)
+						if (dSubType == sTypeRAINWU || dSubType == sTypeRAINByRate)
 						{
-							total_real = total_max - total_min;
+							total_real = total_max;
 						}
 						else
 						{
-							total_real = total_max;
+							total_real = total_max - total_min;
 						}
 						total_real *= AddjMulti;
 						sprintf(szTmp, "%.1f", total_real);
@@ -15238,16 +15258,16 @@ namespace http {
 						}
 					}
 					//add today (have to calculate it)
-					if (dSubType != sTypeRAINWU)
+					if (dSubType == sTypeRAINWU || dSubType == sTypeRAINByRate)
 					{
 						result = m_sql.safe_query(
-							"SELECT MIN(Total), MAX(Total), MAX(Rate) FROM Rain WHERE (DeviceRowID=%" PRIu64 " AND Date>='%q')",
+							"SELECT Total, Total, Rate FROM Rain WHERE (DeviceRowID=%" PRIu64 " AND Date>='%q') ORDER BY ROWID DESC LIMIT 1",
 							idx, szDateEnd);
 					}
 					else
 					{
 						result = m_sql.safe_query(
-							"SELECT Total, Total, Rate FROM Rain WHERE (DeviceRowID=%" PRIu64 " AND Date>='%q') ORDER BY ROWID DESC LIMIT 1",
+							"SELECT MIN(Total), MAX(Total), MAX(Rate) FROM Rain WHERE (DeviceRowID=%" PRIu64 " AND Date>='%q')",
 							idx, szDateEnd);
 					}
 					if (!result.empty())
@@ -15259,13 +15279,13 @@ namespace http {
 						int rate = atoi(sd[2].c_str());
 
 						double total_real = 0;
-						if (dSubType != sTypeRAINWU)
+						if (dSubType == sTypeRAINWU || dSubType == sTypeRAINByRate)
 						{
-							total_real = total_max - total_min;
+							total_real = total_max;
 						}
 						else
 						{
-							total_real = total_max;
+							total_real = total_max - total_min;
 						}
 						total_real *= AddjMulti;
 						sprintf(szTmp, "%.1f", total_real);
@@ -16728,16 +16748,16 @@ namespace http {
 						}
 					}
 					//add today (have to calculate it)
-					if (dSubType != sTypeRAINWU)
+					if (dSubType == sTypeRAINWU || dSubType == sTypeRAINByRate)
 					{
 						result = m_sql.safe_query(
-							"SELECT MIN(Total), MAX(Total), MAX(Rate) FROM Rain WHERE (DeviceRowID==%" PRIu64 " AND Date>='%q')",
+							"SELECT Total, Total, Rate FROM Rain WHERE (DeviceRowID==%" PRIu64 " AND Date>='%q') ORDER BY ROWID DESC LIMIT 1",
 							idx, szDateEnd.c_str());
 					}
 					else
 					{
 						result = m_sql.safe_query(
-							"SELECT Total, Total, Rate FROM Rain WHERE (DeviceRowID==%" PRIu64 " AND Date>='%q') ORDER BY ROWID DESC LIMIT 1",
+							"SELECT MIN(Total), MAX(Total), MAX(Rate) FROM Rain WHERE (DeviceRowID==%" PRIu64 " AND Date>='%q')",
 							idx, szDateEnd.c_str());
 					}
 					if (!result.empty())
@@ -16749,13 +16769,13 @@ namespace http {
 						int rate = atoi(sd[2].c_str());
 
 						float total_real = 0;
-						if (dSubType != sTypeRAINWU)
+						if (dSubType == sTypeRAINWU || dSubType == sTypeRAINByRate)
 						{
-							total_real = total_max - total_min;
+							total_real = total_max;
 						}
 						else
 						{
-							total_real = total_max;
+							total_real = total_max - total_min;
 						}
 						sprintf(szTmp, "%.1f", total_real);
 						root["result"][ii]["d"] = szDateEnd;
