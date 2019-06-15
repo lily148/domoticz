@@ -1203,6 +1203,16 @@ bool COpenZWave::SwitchLight(const int nodeID, const int instanceID, const int c
 					pDevice = FindDevice(nodeID, instanceID, 0, COMMAND_CLASS_SWITCH_BINARY, ZWaveBase::ZDTYPE_SWITCH_NORMAL);
 				}
 			}
+			if(
+				((pDevice->Product_id == 0x608b) && (pDevice->Product_type == 0x0003))
+				)
+			{
+				//Special case for the Neo Smart Switch
+				if (commandClass == COMMAND_CLASS_SWITCH_CHANNEL)
+				{
+					pDevice = FindDevice(nodeID, instanceID, 0, COMMAND_CLASS_SWITCH_BINARY, ZWaveBase::ZDTYPE_SWITCH_NORMAL);
+				}
+			}
 		}
 		if (!pDevice)
 		{
