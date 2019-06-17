@@ -18,5 +18,5 @@ echo "Please Standby..."
 wget -O update.tgz --no-check-certificate "https://update.ibeyondsmart.com/update.beta.tgz"
 tar xvfz update.tgz
 rm update.tgz
-echo "Restarting Domoticz... (please standby...)"
-sudo service domoticz.sh restart
+echo "Please start Domoticz... (please standby...)"
+#sudo service domoticz.sh restart
