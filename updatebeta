@@ -15,7 +15,7 @@ fi
 
 echo "Updating to latest beta version..."
 echo "Please Standby..."
-wget -O update.tgz --no-check-certificate "https://update.ibeyondsmart.com/update.tgz"
+wget -O update.tgz --no-check-certificate "https://update.ibeyondsmart.com/update.beta.tgz"
 tar xvfz update.tgz
 rm update.tgz
 echo "Restarting Domoticz... (please standby...)"
