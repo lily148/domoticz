@@ -19,7 +19,7 @@ if [ "$2" = "/beta" ]; then
 fi
 
 archive_file="https://update.ibeyondsmart.com/update.tgz"
-checksum_file="https://update.ibeyondsmart.com/update.tgz"
+checksum_file="https://update.ibeyondsmart.com/update.tgz.sha256sum"
 
 # Download checksum
 wget -q "${checksum_file}" -O update.tgz.sha256sum
