@@ -1510,6 +1510,10 @@ void COpenZWave::AddValue(const OpenZWave::ValueID& vID, const NodeInfo* pNodeIn
 	std::string vLabel = m_pManager->GetValueLabel(vID);
 	std::string vUnits = m_pManager->GetValueUnits(vID);
 
+	if (vLabel == "Unknown"){
+		_log.Log(LOG_STATUS, "OpenZWave: Value_Added: Warning: OpenZWave returned ValueLabel \"Unknown\" on Node: %d (0x%02x), CommandClass: %s, Label: %s, Instance: %d, Index: %d", static_cast<int>(NodeID), static_cast<int>(NodeID), cclassStr(commandclass), vLabel.c_str(), vOrgInstance, vOrgIndex);
+	}
+
 	if (commandclass == COMMAND_CLASS_CONFIGURATION)
 	{
 #ifdef _DEBUG
@@ -1829,7 +1833,10 @@ void COpenZWave::AddValue(const OpenZWave::ValueID& vID, const NodeInfo* pNodeIn
 		}
 		else if (vOrgIndex == ValueID_Index_SensorMultiLevel::Luminance)
 		{
-			if (vUnits != "lux")
+			// TODO decide what to do with sensors that report %.
+			// - Do we know what 100% means? Is it always 1000 Lux?
+			// - This comparison is pretty stable, but is it stable enough? (vUnits == "%")
+			if (vUnits == "%")
 			{
 				//convert from % to Lux (where max is 1000 Lux)
 				fValue = (1000.0f / 100.0f) * fValue;
@@ -3616,15 +3623,14 @@ void COpenZWave::EnableNodePoll(const unsigned int homeID, const int nodeID, con
 
 		bool bSingleIndexPoll = false;
 
-		std::vector<std::vector<std::string> > result;
-		result = m_sql.safe_query("SELECT ProductDescription FROM ZWaveNodes WHERE (HardwareID==%d) AND (HomeID==%u) AND (NodeID==%d)",
-			m_HwdID, homeID, nodeID);
-		if (!result.empty())
+		if (
+			(pNode->Manufacturer_id == 0x0099)
+			&& (pNode->Product_id == 0x0004)
+			&& (pNode->Product_type == 0x0003)
+			)
 		{
-			std::string ProductDescription = result[0][0];
-			bSingleIndexPoll = (
-				(ProductDescription.find("GreenWave PowerNode 6 port") != std::string::npos)
-				);
+			//GreenWave Reality Inc PowerNode 6
+			bSingleIndexPoll = true;
 		}
 
 		for (std::map<int, std::map<int, NodeCommandClass> >::const_iterator ittInstance = pNode->Instances.begin(); ittInstance != pNode->Instances.end(); ++ittInstance)
