@@ -1472,6 +1472,7 @@
     <Product config="shenzen_neo/ls02ch.xml" id="008b" name="Wall Switch (2 channels)" type="0003"/>
     <Product config="shenzen_neo/ls02ch.xml" id="108b" name="Wall Switch (2 channels)" type="0003"/>
     <Product config="shenzen_neo/ls02ch.xml" id="608b" name="Wall Switch (2 channels)" type="0003"/>
+    <Product config="shenzen_neo/ls03ch.xml" id="1035" name="Wall Switch (3 channels)" type="0600"/>
     <Product config="shenzen_neo/ls01ch.xml" id="008c" name="Wall Switch (1 channel)" type="0003"/>
     <Product config="shenzen_neo/ls01ch.xml" id="108c" name="Wall Switch (1 channel)" type="0003"/>
     <Product config="shenzen_neo/ls01ch.xml" id="608c" name="Wall Switch (1 channel)" type="0003"/>
