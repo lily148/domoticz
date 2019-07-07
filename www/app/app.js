@@ -726,8 +726,8 @@ define(['angularAMD', 'app.routes', 'app.constants', 'app.permissions', 'domotic
 			},
             credits: {
                 enabled: true,
-                href: "http://www.domoticz.com",
-                text: "Domoticz.com"
+                href: "http://www.ibeyondsmart.com",
+                text: "Smart Gateway"
             },
             title: {
                 style: {
