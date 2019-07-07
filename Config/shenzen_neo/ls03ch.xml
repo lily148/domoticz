@@ -5,6 +5,11 @@
   -->
   <!-- Configuration Parameters -->
   <CommandClass id="112">
+    <Value type="list" genre="config" instance="1" index="1" label="Relay On/Off States Saved Enable" value="1" size="1">
+      <Help>This parameter defines the on/off status of relay needs to be saved. The status will be saved when relay status is changed if this parameter is set to '1'. Otherwise the relay stataus is not saved. The Light Switch will restore the relay On/Off  status when powered again.</Help>
+      <Item label="Disable" value="0"/>
+      <Item label="Enable" value="1"/>
+    </Value>
     <Value type="list" genre="config" instance="1" index="2" label="Back light Enable" value="1" size="1">
       <Help>This parameter defines the back light state of the touch button. The back light led would be on when Light Switch is powered on if the parameter is set to '1'. Otherwise the back light led would be off.</Help>
       <Item label="Disable" value="0"/>
@@ -15,17 +20,10 @@
       <Item label="Disable" value="0"/>
       <Item label="Enable" value="1"/>
     </Value>
-    <Value type="list" genre="config" instance="1" index="1" label="Relay On/Off States Saved Enable" value="1" size="1">
-      <Help>This parameter defines the on/off status of relay needs to be saved. The status will be saved when relay status is changed if this parameter is set to '1'. Otherwise the relay stataus is not saved. The Light Switch will restore the relay On/Off  status when powered again.</Help>
-      <Item label="Disable" value="0"/>
-      <Item label="Enable" value="1"/>
-    </Value>
-    <Value type="list" genre="config" instance="1" index="4" label="Root Device Mapped Setting" min="0" max="5" value="0" size="1">
-      <Help>This parameter defines which endpoint is mapped to root device (Endpoint 0). 0 - No endpoint is mapped to root device. 1 - Endpoint 1 is mapped to root device. 2 - Endpoint 2 is mapped to root device. 2 - Endpoint 3 is mapped to root device. 4 - Both endpoint 1 and 2 are mapped to root device.</Help>
+    <Value type="list" genre="config" instance="1" index="4" label="Root Device Mapped Setting" min="0" max="3" value="0" size="1">
+      <Help>This parameter defines which endpoint is mapped to root device (Endpoint 0). 0 - No endpoint is mapped to root device. 1 - Endpoint 1 is mapped to root device. 3 - All endpoints are mapped to root device.</Help>
       <Item label="No endpoint is mapped to root device" value="0"/>
       <Item label="Endpoint 1 is mapped to root device" value="1"/>
-      <Item label="Endpoint 2 is mapped to root device" value="2"/>
-	  <Item label="Endpoint 3 is mapped to root device" value="3"/>
       <Item label="All endpoint 1, 2 and 3 are mapped to root device" value="7"/>
     </Value>
   </CommandClass>
