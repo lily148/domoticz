@@ -19,6 +19,8 @@ if [ ${OS} = "darwin" ]; then
   sleep 15
   launchctl load /System/Library/LaunchAgents/com.domoticz.server.plist
 else
+  cd /opt/Domoticz-Google-Assistant
+  git pull
 #  sudo service domoticz.sh stop
   sudo systemctl restart domoticz.service
   echo "please standby... (waiting 15 seconds)"
