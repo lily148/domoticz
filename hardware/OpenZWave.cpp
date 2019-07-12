@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "../main/Helper.h"
+#include "../main/HTMLSanitizer.h"
 #include "../main/RFXtrx.h"
 #include "../main/Logger.h"
 #include "../main/SQLHelper.h"
@@ -578,11 +579,11 @@ void COpenZWave::OnZWaveNotification(OpenZWave::Notification const* _notificatio
 		break;
 	case OpenZWave::Notification::Type_SceneEvent:
 		//Deprecated
-		{
-			//uint8_t SceneID = _notification->GetSceneId();
-			//_log.Log(LOG_NORM, "OpenZWave: Type_SceneEvent, SceneID: %d, HomeID: %u, NodeID: %d (0x%02x)", SceneID, _homeID, _nodeID, _nodeID);
-		}
-		break;
+	{
+		//uint8_t SceneID = _notification->GetSceneId();
+		//_log.Log(LOG_NORM, "OpenZWave: Type_SceneEvent, SceneID: %d, HomeID: %u, NodeID: %d (0x%02x)", SceneID, _homeID, _nodeID, _nodeID);
+	}
+	break;
 	case OpenZWave::Notification::Type_ValueRemoved:
 		if ((_nodeID == 0) || (_nodeID == 255))
 			return;
@@ -1510,7 +1511,7 @@ void COpenZWave::AddValue(const OpenZWave::ValueID& vID, const NodeInfo* pNodeIn
 	std::string vLabel = m_pManager->GetValueLabel(vID);
 	std::string vUnits = m_pManager->GetValueUnits(vID);
 
-	if (vLabel == "Unknown"){
+	if (vLabel == "Unknown") {
 		_log.Log(LOG_STATUS, "OpenZWave: Value_Added: Warning: OpenZWave returned ValueLabel \"Unknown\" on Node: %d (0x%02x), CommandClass: %s, Label: %s, Instance: %d, Index: %d", static_cast<int>(NodeID), static_cast<int>(NodeID), cclassStr(commandclass), vLabel.c_str(), vOrgInstance, vOrgIndex);
 	}
 
@@ -1563,6 +1564,8 @@ void COpenZWave::AddValue(const OpenZWave::ValueID& vID, const NodeInfo* pNodeIn
 	_device.nodeID = NodeID;
 	_device.instanceID = instance;
 	_device.indexID = vIndex;
+	_device.orgInstanceID = vOrgInstance;
+	_device.orgIndexID = vOrgIndex;
 	_device.commandClassID = commandclass;
 
 	_device.label = vLabel;
@@ -1660,6 +1663,14 @@ void COpenZWave::AddValue(const OpenZWave::ValueID& vID, const NodeInfo* pNodeIn
 	{
 		if ((vOrgIndex < ValueID_Index_UserCode::Code_1) || (vOrgIndex > ValueID_Index_UserCode::Code_253))
 			return;
+		if (vType == OpenZWave::ValueID::ValueType_String)
+		{
+			std::string strValue;
+			if (m_pManager->GetValueAsString(vID, &strValue) == true)
+			{
+			}
+		}
+		return;
 	}
 	else if (commandclass == COMMAND_CLASS_BASIC_WINDOW_COVERING)
 	{
@@ -1677,11 +1688,21 @@ void COpenZWave::AddValue(const OpenZWave::ValueID& vID, const NodeInfo* pNodeIn
 	else if ((commandclass == COMMAND_CLASS_ALARM) || (commandclass == COMMAND_CLASS_SENSOR_ALARM))
 	{
 		if (
-			(vType != OpenZWave::ValueID::ValueType_List) &&
-			(vType != OpenZWave::ValueID::ValueType_Byte)
+			(vType != OpenZWave::ValueID::ValueType_List)
+			&& (vType != OpenZWave::ValueID::ValueType_Byte)
+			&& (vType != OpenZWave::ValueID::ValueType_String)
 			)
 		{
 			_log.Log(LOG_ERROR, "OpenZWave: Unhandled value type: %d, %s:%d", vType, std::string(__MYFUNCTION__).substr(std::string(__MYFUNCTION__).find_last_of("/\\") + 1).c_str(), __LINE__);
+			return;
+		}
+		if (vType == OpenZWave::ValueID::ValueType_String)
+		{
+			//could be a location or a user code that was entered, we do not use this for now
+			std::string strValue;
+			if (m_pManager->GetValueAsString(vID, &strValue) == true)
+			{
+			}
 			return;
 		}
 		int32 alarm_value = 0;
@@ -1812,7 +1833,7 @@ void COpenZWave::AddValue(const OpenZWave::ValueID& vID, const NodeInfo* pNodeIn
 			|| (vOrgIndex == ValueID_Index_SensorMultiLevel::Liquid_Line_Temperature)
 			|| (vOrgIndex == ValueID_Index_SensorMultiLevel::Discharge_Line_Temperature)
 			|| (vOrgIndex == ValueID_Index_SensorMultiLevel::Defrost_Temperature)
-			) 
+			)
 		{
 			if (vUnits == "F")
 			{
@@ -1914,6 +1935,16 @@ void COpenZWave::AddValue(const OpenZWave::ValueID& vID, const NodeInfo* pNodeIn
 		else if (vOrgIndex == ValueID_Index_SensorMultiLevel::Seismic_Intensity)
 		{
 			_device.devType = ZDTYPE_SENSOR_PERCENTAGE;
+		}
+		else if (
+			(vOrgIndex == ValueID_Index_SensorMultiLevel::X_Axis_Acceleration)
+			|| (vOrgIndex == ValueID_Index_SensorMultiLevel::Y_Axis_Acceleration)
+			|| (vOrgIndex == ValueID_Index_SensorMultiLevel::Z_Axis_Acceleration)
+			)
+		{
+			_device.instanceID = vOrgIndex;
+			_device.custom_label = "m/s2";
+			_device.devType = ZDTYPE_SENSOR_CUSTOM;
 		}
 		else
 		{
@@ -2422,8 +2453,9 @@ void COpenZWave::UpdateValue(const OpenZWave::ValueID& vID)
 	}
 
 	std::stringstream sstr;
-	sstr << int(NodeID) << ".instance." << int(instance) << ".index." << int(index) << ".commandClasses." << int(commandclass);
+	sstr << int(NodeID) << ".instance." << int(vOrgInstance) << ".index." << int(vOrgIndex) << ".commandClasses." << int(commandclass);
 	std::string path = sstr.str();
+	std::string path_plus = path + ".";
 
 #ifdef DEBUG_ZWAVE_INT
 	_log.Log(LOG_NORM, "OpenZWave: Value_Changed: Node: %d (0x%02x), CommandClass: %s, Label: %s, Instance: %d, Index: %d", NodeID, NodeID, cclassStr(commandclass), vLabel.c_str(), vID.GetInstance(), vID.GetIndex());
@@ -2527,6 +2559,14 @@ void COpenZWave::UpdateValue(const OpenZWave::ValueID& vID)
 			else
 			{
 				//Normal Code Code_1/Code_253
+				if (vType == OpenZWave::ValueID::ValueType_String)
+				{
+					std::string strValue;
+					if (m_pManager->GetValueAsString(vID, &strValue) == true)
+					{
+					}
+				}
+				return;
 			}
 		}
 	}
@@ -2598,7 +2638,6 @@ void COpenZWave::UpdateValue(const OpenZWave::ValueID& vID)
 
 	_tZWaveDevice* pDevice = NULL;
 	std::map<std::string, _tZWaveDevice>::iterator itt;
-	std::string path_plus = path + ".";
 	for (itt = m_devices.begin(); itt != m_devices.end(); ++itt)
 	{
 		std::string dstring = itt->second.string_id;
@@ -2650,8 +2689,6 @@ void COpenZWave::UpdateValue(const OpenZWave::ValueID& vID)
 	}
 
 	pDevice->bValidValue = true;
-	pDevice->orgInstanceID = vOrgInstance;
-	pDevice->orgIndexID = vOrgIndex;
 
 	if (
 		(pDevice->Manufacturer_id == 0) &&
@@ -2704,7 +2741,7 @@ void COpenZWave::UpdateValue(const OpenZWave::ValueID& vID)
 		{
 			// default
 			int32 intListValue = 0;
-			std::string szListValue;
+			std::string szListValue("??");
 			if (vType == OpenZWave::ValueID::ValueType_List)
 			{
 				if (m_pManager->GetValueListSelection(vID, &intListValue))
@@ -2735,7 +2772,7 @@ void COpenZWave::UpdateValue(const OpenZWave::ValueID& vID)
 				else
 					m_LastAlarmTypeReceived = -1;
 			}
-			if (vOrgIndex == ValueID_Index_Alarm::Level_v1)
+			else if (vOrgIndex == ValueID_Index_Alarm::Level_v1)
 			{
 				if (m_LastAlarmTypeReceived != -1)
 				{
@@ -2753,7 +2790,7 @@ void COpenZWave::UpdateValue(const OpenZWave::ValueID& vID)
 				{
 					char szTmp[100];
 					sprintf(szTmp, "Alarm Type: %s %d (0x%02X)", vLabel.c_str(), vOrgIndex, vOrgIndex);
-					SendZWaveAlarmSensor(pDevice->nodeID, pDevice->instanceID, pDevice->batValue, (uint8_t)vOrgIndex, intListValue, szTmp);
+					SendZWaveAlarmSensor(pDevice->nodeID, pDevice->instanceID, pDevice->batValue, (uint8_t)vOrgIndex, intListValue, szListValue, szTmp);
 				}
 
 				if (vOrgIndex == ValueID_Index_Alarm::Type_Access_Control)
@@ -2873,50 +2910,50 @@ void COpenZWave::UpdateValue(const OpenZWave::ValueID& vID)
 			}
 			pDevice->intvalue = intValue;
 		}
-	else if (commandclass == COMMAND_CLASS_DOOR_LOCK)
-	{
-		if (
-			(vOrgIndex == ValueID_Index_DoorLock::Lock)
-			|| (vOrgIndex == ValueID_Index_DoorLock::Lock_Mode)
-			)
+		else if (commandclass == COMMAND_CLASS_DOOR_LOCK)
 		{
-			if (vType == OpenZWave::ValueID::ValueType_Bool)
+			if (
+				(vOrgIndex == ValueID_Index_DoorLock::Lock)
+				|| (vOrgIndex == ValueID_Index_DoorLock::Lock_Mode)
+				)
 			{
-				if (m_pManager->GetValueAsBool(vID, &bValue) == true)
+				if (vType == OpenZWave::ValueID::ValueType_Bool)
 				{
-					if (bValue == true)
-						pDevice->intvalue = 255;
-					else
-						pDevice->intvalue = 0;
+					if (m_pManager->GetValueAsBool(vID, &bValue) == true)
+					{
+						if (bValue == true)
+							pDevice->intvalue = 255;
+						else
+							pDevice->intvalue = 0;
+					}
 				}
-			}
-			else if (vType == OpenZWave::ValueID::ValueType_List)
-			{
-				int32 lValue = 0;
-				if (m_pManager->GetValueListSelection(vID, &lValue) == false)
-					return;
-				if (
-					(lValue == 0)
-					|| (lValue == 1)
-					)
+				else if (vType == OpenZWave::ValueID::ValueType_List)
 				{
-					//Locked/Locked Advanced
-					pDevice->intvalue = 255;
+					int32 lValue = 0;
+					if (m_pManager->GetValueListSelection(vID, &lValue) == false)
+						return;
+					if (
+						(lValue == 0)
+						|| (lValue == 1)
+						)
+					{
+						//Locked/Locked Advanced
+						pDevice->intvalue = 255;
+					}
+					else
+					{
+						//Unlock values?
+						pDevice->intvalue = 0;
+					}
 				}
 				else
 				{
-					//Unlock values?
-					pDevice->intvalue = 0;
+					_log.Log(LOG_ERROR, "OpenZWave: Unhandled value type: %d, %s:%d", vType, std::string(__MYFUNCTION__).substr(std::string(__MYFUNCTION__).find_last_of("/\\") + 1).c_str(), __LINE__);
+					return;
 				}
 			}
-			else
-			{
-				_log.Log(LOG_ERROR, "OpenZWave: Unhandled value type: %d, %s:%d", vType, std::string(__MYFUNCTION__).substr(std::string(__MYFUNCTION__).find_last_of("/\\") + 1).c_str(), __LINE__);
-				return;
-			}
 		}
-	}
-	else if (vLabel.find("Open") != std::string::npos)
+		else if (vLabel.find("Open") != std::string::npos)
 		{
 			pDevice->intvalue = 255;
 		}
@@ -2948,7 +2985,6 @@ void COpenZWave::UpdateValue(const OpenZWave::ValueID& vID)
 					//New color value received, not handled yet
 					return;
 				}
-
 			}
 			else if (vType == OpenZWave::ValueID::ValueType_List)
 			{
@@ -3832,7 +3868,7 @@ void COpenZWave::DisableNodePoll(const unsigned int homeID, const int nodeID)
 
 void COpenZWave::DeleteNode(const unsigned int homeID, const int nodeID)
 {
-	m_sql.safe_query("DELETE FROM ZWaveNodes WHERE (HardwareID==%d) AND (HomeID==%u) AND (NodeID==%d)",	m_HwdID, homeID, nodeID);
+	m_sql.safe_query("DELETE FROM ZWaveNodes WHERE (HardwareID==%d) AND (HomeID==%u) AND (NodeID==%d)", m_HwdID, homeID, nodeID);
 }
 
 void COpenZWave::AddNode(const unsigned int homeID, const int nodeID, const NodeInfo* pNode)
@@ -4765,7 +4801,7 @@ bool COpenZWave::RemoveUserCode(const unsigned int homeID, const int nodeID, con
 				try
 				{
 					std::string sValue;
-					sValue.assign(4,0);
+					sValue.assign(4, 0);
 					m_pManager->SetValue(vNodeValue, sValue);
 					break;
 				}
@@ -4872,7 +4908,7 @@ namespace http {
 			std::string idx = request::findValue(&req, "idx");
 			if (idx == "")
 				return;
-			std::string name = request::findValue(&req, "name");
+			std::string name = HTMLSanitizer::Sanitize(request::findValue(&req, "name"));
 			std::string senablepolling = request::findValue(&req, "EnablePolling");
 			if (
 				(name == "") ||
@@ -5289,7 +5325,7 @@ namespace http {
 						std::string nodeName = sd[3].c_str();
 						int numGroups = pOZWHardware->ListGroupsForNode(nodeID);
 						root["result"]["nodes"][ii]["nodeID"] = nodeID;
-						root["result"]["nodes"][ii]["nodeName"] = (nodeName!="Unknown") ? nodeName : (pNode->Manufacturer_name + std::string(" ") + pNode->Product_name);
+						root["result"]["nodes"][ii]["nodeName"] = (nodeName != "Unknown") ? nodeName : (pNode->Manufacturer_name + std::string(" ") + pNode->Product_name);
 						root["result"]["nodes"][ii]["groupCount"] = numGroups;
 						if (numGroups > 0) {
 							if (numGroups > MaxNoOfGroups)
