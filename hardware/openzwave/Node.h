@@ -541,8 +541,7 @@ namespace OpenZWave
 			 * was already there or if the CommandClass object creation failed).
 			 * \see CommandClass, CommandClasses::CreateCommandClass, m_commandClassMap
 			 */
-			Internal::CC::CommandClass* AddCommandClass(uint8 const _commandClassId);
-			//Internal::CC::CommandClass* AddCommandClass(uint8 const _commandClassId, uint8 _instance);
+			Internal::CC::CommandClass* AddCommandClass(uint8 const _commandClassId, uint8 _instance);
 			/**
 			 * Removes a command class object from the node (via the m_commandClassMap).  Before removing the
 			 * object, this function also removes any values stored in the object's ValueStore.
