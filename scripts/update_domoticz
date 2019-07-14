@@ -19,9 +19,9 @@ if [ ${OS} = "darwin" ]; then
   sleep 15
   launchctl load /System/Library/LaunchAgents/com.domoticz.server.plist
 else
-  chmod +x /opt/domoticz/script/googleassistant.sh
-  /opt/domoticz/script/googleassistant.sh
-  rm /opt/domoticz/script/googleassistant.sh
+  chmod +x /opt/domoticz/scripts/googleassistant.sh
+  /opt/domoticz/scripts/googleassistant.sh
+  rm /opt/domoticz/scripts/googleassistant.sh
   cd /opt/Domoticz-Google-Assistant
   git pull
 
