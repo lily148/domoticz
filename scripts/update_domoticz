@@ -26,10 +26,9 @@ else
   git pull
 
 #  sudo service domoticz.sh stop
-  sudo systemctl stop domoticz.service
+  sudo systemctl restart domoticz.service
   echo "please standby... (waiting 15 seconds)"
   sleep 15
 #  sudo service domoticz.sh start
   sudo systemctl restart domoticz.service
 fi
-
