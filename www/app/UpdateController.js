@@ -103,7 +103,7 @@ define(['app'], function (app) {
 							$scope.topText = $.t("Updating system...");
 							$scope.mytimer = $interval(function () {
 								$scope.progressupdatesystem();
-							}, 200);
+							}, 600);
 							$scope.mytimer2 = $interval(function () {
 								$scope.SendUpdateCommand();
 							}, 500);
