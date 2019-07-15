@@ -40,7 +40,7 @@ define(['app'], function (app) {
 				if ($.StopProgress == false) {
 					$scope.mytimer = $interval(function () {
 						$scope.progressupdatesystem();
-					}, 10000);
+					}, 1000);
 				}
 			}
 			else {
@@ -67,7 +67,7 @@ define(['app'], function (app) {
 			$.ajax({
 				url: "json.htm?type=command&param=execute_script&scriptname=update_domoticz&direct=true",
 				async: true,
-				timeout: 3000,
+				timeout: 4000,
 				dataType: 'json',
 				success: function (data) {
 					$scope.topText = $.t("Restarting System (This could take some time...)");
@@ -103,7 +103,7 @@ define(['app'], function (app) {
 							$scope.topText = $.t("Updating system...");
 							$scope.mytimer = $interval(function () {
 								$scope.progressupdatesystem();
-							}, 300);
+							}, 400);
 							$scope.mytimer2 = $interval(function () {
 								$scope.SendUpdateCommand();
 							}, 500);
