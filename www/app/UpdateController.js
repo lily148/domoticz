@@ -40,7 +40,7 @@ define(['app'], function (app) {
 				if ($.StopProgress == false) {
 					$scope.mytimer = $interval(function () {
 						$scope.progressupdatesystem();
-					}, 4000);
+					}, 10000);
 				}
 			}
 			else {
