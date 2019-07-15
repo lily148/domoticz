@@ -67,7 +67,7 @@ define(['app'], function (app) {
 			$.ajax({
 				url: "json.htm?type=command&param=execute_script&scriptname=update_domoticz&direct=true",
 				async: true,
-				timeout: 40000,
+				timeout: 3000,
 				dataType: 'json',
 				success: function (data) {
 					$scope.topText = $.t("Restarting System (This could take some time...)");
