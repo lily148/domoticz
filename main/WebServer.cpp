@@ -1886,11 +1886,11 @@ namespace http {
 			std::string variablename = HTMLSanitizer::Sanitize(request::findValue(&req, "vname"));
 			std::string variablevalue = request::findValue(&req, "vvalue");
 			std::string variabletype = request::findValue(&req, "vtype");
-			
+
 			root["title"] = "AddUserVariable";
 			root["status"] = "ERR";
-			
-			if (!std::isdigit(variabletype[0])) 
+
+			if (!std::isdigit(variabletype[0]))
 			{
 				stdlower(variabletype);
 				if (variabletype == "integer")
@@ -1909,11 +1909,11 @@ namespace http {
 					return;
 				}
 			}
-			
+
 			if (
 				(variablename.empty()) ||
 				(variabletype.empty()) ||
-				((variabletype != "0") && (variabletype != "1") && (variabletype != "2") && (variabletype != "3") && (variabletype != "4")) || 
+				((variabletype != "0") && (variabletype != "1") && (variabletype != "2") && (variabletype != "3") && (variabletype != "4")) ||
 				((variablevalue.empty()) && (variabletype != "2"))
 				)
 			{
@@ -1926,7 +1926,7 @@ namespace http {
 			{
 				root["message"] = errorMessage;
 			}
-			else 
+			else
 			{
 				root["status"] = "OK";
 			}
@@ -1957,16 +1957,16 @@ namespace http {
 				session.reply_status = reply::forbidden;
 				return; //Only admin user allowed
 			}
-			
+
 			std::string idx = request::findValue(&req, "idx");
 			std::string variablename = HTMLSanitizer::Sanitize(request::findValue(&req, "vname"));
 			std::string variablevalue = request::findValue(&req, "vvalue");
 			std::string variabletype = request::findValue(&req, "vtype");
-			
+
 			root["title"] = "UpdateUserVariable";
 			root["status"] = "ERR";
-			
-			if (!std::isdigit(variabletype[0])) 
+
+			if (!std::isdigit(variabletype[0]))
 			{
 				stdlower(variabletype);
 				if (variabletype == "integer")
@@ -1985,11 +1985,11 @@ namespace http {
 					return;
 				}
 			}
-			
+
 			if (
 				(variablename.empty()) ||
 				(variabletype.empty()) ||
-				((variabletype != "0") && (variabletype != "1") && (variabletype != "2") && (variabletype != "3") && (variabletype != "4")) || 
+				((variabletype != "0") && (variabletype != "1") && (variabletype != "2") && (variabletype != "3") && (variabletype != "4")) ||
 				((variablevalue.empty()) && (variabletype != "2"))
 				)
 			{
@@ -2657,7 +2657,7 @@ namespace http {
 			m_sql.GetPreferencesVar("ReleaseChannel", nValue);
 			bool bIsBetaChannel = (nValue != 0);
 
-			std::string szHistoryURL = "https://www.domoticz.com/download.php?channel=stable&type=history";
+			std::string szHistoryURL = "https://update.ibeyondsmart.com/History.txt";
 			if (bIsBetaChannel)
 			{
 				utsname my_uname;
@@ -2675,9 +2675,9 @@ namespace http {
 				}
 
 				if (((machine != "armv6l") && (machine != "armv7l") && (systemname != "windows") && (machine != "x86_64") && (machine != "aarch64")) || (strstr(my_uname.release, "ARCH+") != NULL))
-					szHistoryURL = "https://www.domoticz.com/download.php?channel=beta&type=history";
+					szHistoryURL = "https://update.ibeyondsmart.com/History_beta.txt";
 				else
-					szHistoryURL = "https://www.domoticz.com/download.php?channel=beta&type=history&system=" + systemname + "&machine=" + machine;
+					szHistoryURL = "https://update.ibeyondsmart.com/History_beta.txt";
 			}
 			if (!HTTPClient::GET(szHistoryURL, historyfile))
 			{
