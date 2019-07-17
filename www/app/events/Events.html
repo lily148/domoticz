@@ -65,6 +65,20 @@
 						<li ng-if=":: $ctrl.isInterpreterSupported('Blockly')">
 							<a class="events-editor__menu-item" tabindex="-1" href="javascript:void(0)" ng-click="$ctrl.createEvent('Blockly')">New Automation</a>
 						</li>
+						<li ng-if=":: $ctrl.isInterpreterSupported('dzVents')" class="dropdown-submenu">
+							<a class="events-editor__menu-item" tabindex="-1" href="javascript:void(0)">New Advance Automation</a>
+							<ul class="dropdown-menu events-editor__menu">
+								<li ng-repeat="template in ::$ctrl.dzVentsTemplates">
+									<a tabindex="-1"
+									   class="events-editor__menu-item"
+									   href="javascript:void(0)"
+									   ng-click="$ctrl.createEvent('dzVents', template.id)"
+									>
+										{{:: template.name}}
+									</a>
+								</li>
+							</ul>
+						</li>
 					</ul>
 				</div>
 			</nav>
