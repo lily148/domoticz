@@ -47,6 +47,8 @@ return {
 	end,
 
 	matches = function (device, adapterManager)
+		adapterManager.addDummyMethod(device, 'protectionOn')
+		adapterManager.addDummyMethod(device, 'protectionOff')
 		adapterManager.addDummyMethod(device, 'setDescription')
 		adapterManager.addDummyMethod(device, 'setIcon')
 		adapterManager.addDummyMethod(device, 'setValues')
@@ -76,7 +78,6 @@ return {
 		device.isVariable = false
 		device.isHTTPResponse = false
 		device.isSecurity = false
-
 
 		if (data.baseType == 'device') then
 
@@ -118,6 +119,7 @@ return {
 
 		if (data.baseType == 'group' or data.baseType == 'scene') then
 			device['description'] = data.description
+			device['protected'] = data.protected 
 			device['lastUpdate'] = Time(data.lastUpdate)
 			device['rawData'] = { [1] = data.data._state }
 			device['changed'] = data.changed
@@ -160,6 +162,20 @@ return {
 			return domoticz.openURL(url)
 		end
 
+		function device.protectionOn()
+			local url = domoticz.settings['Domoticz url'] ..  
+						"/json.htm?type=setused&used=true&protected=true" ..
+						"&idx=" .. device.idx
+			return domoticz.openURL(url)
+		end
+
+		function device.protectionOff()
+			local url = domoticz.settings['Domoticz url'] ..  
+						"/json.htm?type=setused&used=true&protected=false" ..
+						"&idx=" .. device.idx
+			return domoticz.openURL(url)
+		end
+
 		function device.setValues(nValue, ...)
 			local args = {...}
 			local sValue = ''
@@ -183,7 +199,11 @@ return {
 
 		for attribute, value in pairs(data.data) do
 			if (device[attribute] == nil) then
-				device[attribute] = value
+				if type(value) == 'number' then
+					device[attribute] = math.tointeger(value) or value
+				else
+					device[attribute] = value
+				end
 			end
 		end
 

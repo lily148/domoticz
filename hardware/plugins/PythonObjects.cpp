@@ -472,6 +472,36 @@ namespace Plugins {
 			SubType = sSwitchTypeSelector;
 			SwitchType = STYPE_Selector;
 		}
+		else if (sTypeName == "Push On")
+		{
+			Type = pTypeGeneralSwitch;
+			SubType = sSwitchGeneralSwitch;
+			SwitchType = STYPE_PushOn;
+		}
+		else if (sTypeName == "Push Off")
+		{
+			Type = pTypeGeneralSwitch;
+			SubType = sSwitchGeneralSwitch;
+			SwitchType = STYPE_PushOff;
+		}
+		else if (sTypeName == "Contact")
+		{
+			Type = pTypeGeneralSwitch;
+			SubType = sSwitchGeneralSwitch;
+			SwitchType = STYPE_Contact;
+		}
+		else if (sTypeName == "Dimmer")
+		{
+			Type = pTypeGeneralSwitch;
+			SubType = sSwitchGeneralSwitch;
+			SwitchType = STYPE_Dimmer;
+		}
+		else if (sTypeName == "Motion")
+		{
+			Type = pTypeGeneralSwitch;
+			SubType = sSwitchGeneralSwitch;
+			SwitchType = STYPE_Motion;
+		}
 		else if (sTypeName == "Custom")
 		{
 			SubType = sTypeCustom;
@@ -620,7 +650,7 @@ namespace Plugins {
 		{
 			// load associated devices to make them available to python
 			std::vector<std::vector<std::string> > result;
-			result = m_sql.safe_query("SELECT Unit, ID, Name, nValue, sValue, DeviceID, Type, SubType, SwitchType, LastLevel, CustomImage, SignalLevel, BatteryLevel, LastUpdate, Options, Description, Color FROM DeviceStatus WHERE (HardwareID==%d) AND (Unit==%d) ORDER BY Unit ASC", self->HwdID, self->Unit);
+			result = m_sql.safe_query("SELECT Unit, ID, Name, nValue, sValue, DeviceID, Type, SubType, SwitchType, LastLevel, CustomImage, SignalLevel, BatteryLevel, LastUpdate, Options, Description, Color, Used FROM DeviceStatus WHERE (HardwareID==%d) AND (Unit==%d) ORDER BY Unit ASC", self->HwdID, self->Unit);
 			if (!result.empty())
 			{
 				for (std::vector<std::vector<std::string> >::const_iterator itt = result.begin(); itt != result.end(); ++itt)
@@ -674,6 +704,7 @@ namespace Plugins {
 					self->Description = PyUnicode_FromString(sd[15].c_str());
 					Py_XDECREF(self->Color);
 					self->Color = PyUnicode_FromString(_tColor(std::string(sd[16])).toJSONString().c_str()); //Parse the color to detect incorrectly formatted color data
+					self->Used = atoi(sd[17].c_str());
 				}
 			}
 		}

@@ -60,6 +60,7 @@ ENDIF(USE_OPENSSL_STATIC)
 
 option(USE_BUILTIN_LUA "Use builtin lua library" YES)
 IF(USE_BUILTIN_LUA)
+  message(STATUS "Use builtin lua library" )
   IF(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     add_definitions(-DLUA_USE_MACOSX)
   ENDIF()
@@ -284,6 +285,10 @@ MACRO(ADD_PRECOMPILED_HEADER _targetName _input)
     ADD_CUSTOM_TARGET(${_targetName}_gch DEPENDS ${_output})
     ADD_DEPENDENCIES(${_targetName} ${_targetName}_gch)
     SET_TARGET_PROPERTIES(${_targetName} PROPERTIES COMPILE_FLAGS "-include ${_name} -Winvalid-pch")
+    IF(USE_BUILTIN_LUA)
+        # Add -rdynamic linker flag for exporting functions which is mandatory to use external lua modules
+        SET_TARGET_PROPERTIES(${_targetName} PROPERTIES ENABLE_EXPORTS ON)
+    ENDIF(USE_BUILTIN_LUA)
   ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 ENDMACRO()
 
@@ -351,6 +356,7 @@ hardware/ASyncSerial.cpp
 hardware/ASyncTCP.cpp
 hardware/AtagOne.cpp
 hardware/BleBox.cpp
+hardware/Buienradar.cpp
 hardware/cayenne_lpp/CayenneLPP_Dec.cpp
 hardware/ColorSwitch.cpp
 hardware/Comm5Serial.cpp
@@ -572,6 +578,7 @@ if(NOT OPENSSL_FOUND)
 else()
   message(STATUS "OPENSSL_LIBRARIES: ${OPENSSL_LIBRARIES}")
   add_definitions(-DWWW_ENABLE_SSL)
+  add_definitions(-DWITH_TLS)
   include_directories(${OPENSSL_INCLUDE_DIR})
   target_link_libraries(domoticz ${OPENSSL_LIBRARIES})
 endif()
@@ -648,7 +655,6 @@ IF(CURL_FOUND)
   MESSAGE(STATUS "Curl libraries found at: ${CURL_LIBRARIES}")
   MESSAGE(STATUS "Curl includes found at: ${CURL_INCLUDE_DIRS}")
   INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIRS})
-  # add_definitions(-DWWW_ENABLE_SSL)
 else()
   MESSAGE(FATAL_ERROR "cURL not found on your system, see install.txt how to get them installed. (for example 'sudo apt-get install curl libcurl4-gnutls-dev')")
 ENDIF(CURL_FOUND)
@@ -738,7 +744,10 @@ else()
   target_link_libraries(domoticz -lrt -lresolv ${EXECINFO_LIBRARIES})
 ENDIF()
 
-ADD_PRECOMPILED_HEADER(domoticz "main/stdafx.h")
+option(USE_PRECOMPILED_HEADER "Use precompiled header feature to speed up build time " YES)
+if(USE_PRECOMPILED_HEADER)
+  ADD_PRECOMPILED_HEADER(domoticz "main/stdafx.h")
+ENDIF(USE_PRECOMPILED_HEADER)
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
   option(USE_STATIC_LIBSTDCXX "Build with static libgcc/libstdc++ libraries" YES)

@@ -25,6 +25,7 @@
 #define SensorTypeZLLPresence "ZLLPresence"
 #define SensorTypeZLLTemperature "ZLLTemperature"
 #define SensorTypeZLLLightLevel "ZLLLightLevel"
+#define SensorTypeGeofence "Geofence"
 
 //#define DEBUG_PhilipsHue
 
@@ -138,7 +139,7 @@ void CPhilipsHue::Do_Work()
 	_log.Log(LOG_STATUS,"Philips Hue: Worker stopped...");
 }
 
-bool CPhilipsHue::WriteToHardware(const char *pdata, const unsigned char length)
+bool CPhilipsHue::WriteToHardware(const char *pdata, const unsigned char /*length*/)
 {
 	const tRBUF *pSen = reinterpret_cast<const tRBUF*>(pdata);
 
@@ -1070,6 +1071,14 @@ bool CPhilipsHue::GetSensors(const Json::Value &root)
 			{
 			}
 			else if (current_sensor.m_type == SensorTypeZLLPresence)
+			{
+				if ((previous_sensor.m_state.m_presence != current_sensor.m_state.m_presence)
+					|| (bNewSensor))
+				{
+					InsertUpdateSwitch(sID, STYPE_Motion, current_sensor.m_state.m_presence, device_name, current_sensor.m_config.m_battery);
+				}
+			}
+            else if (current_sensor.m_type == SensorTypeGeofence)
 			{
 				if ((previous_sensor.m_state.m_presence != current_sensor.m_state.m_presence)
 					|| (bNewSensor))

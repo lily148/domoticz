@@ -1,3 +1,4 @@
+
 local jsonParser
 local _ = require('lodash')
 
@@ -7,8 +8,34 @@ local self = {
 	LOG_MODULE_EXEC_INFO = 2,
 	LOG_INFO = 3,
 	LOG_DEBUG = 4,
-	DZVERSION = '2.4.26',
+	DZVERSION = '2.5.0', -- for Lua 5.3
 }
+
+function self.rightPad(str, len, char)
+	if char == nil then char = ' ' end
+	return str .. string.rep(char, len - #str)
+end
+
+function self.leftPad(str, len, char)
+	if char == nil then char = ' ' end
+	return string.rep(char, len - #str) .. str
+end
+
+function self.centerPad(str, len, char )
+	if char == nil then char = ' ' end
+	return string.rep(char, ( len - #str) / 2 ) .. str .. string.rep(char, ( len - #str) /2)
+end
+
+function self.leadingZeros(num, len )
+	return self.leftPad(tostring(num),len,'0')
+end
+
+function self.numDecimals(num, int, dec)
+	if int == nil then int = 99 end
+	if dec == nil then dec = 0 end
+	local fmt = '%' .. int .. '.' .. dec .. 'f' 
+	return string.format(fmt,num)
+end
 
 function self.fileExists(name)
 	local f = io.open(name, "r")
@@ -21,6 +48,7 @@ function self.fileExists(name)
 end
 
 function self.stringSplit(text, sep)
+	if not(text) then return {} end
 	local sep = sep or '%s'
 	local t = {}
 	for str in string.gmatch(text, "([^"..sep.."]+)") do
@@ -41,7 +69,8 @@ function self.inTable(searchTable, element)
 end
 
 function self.round(x, n)
-	n = math.pow(10, n or 0)
+	-- n = math.pow(10, n or 0)
+	n = 10^(n or 0)
 	x = x * n
 	if x >= 0 then
 		x = math.floor(x + 0.5)
@@ -152,13 +181,12 @@ function self.log(msg, level)
 	local lLevel = _G.logLevel == nil and 1 or _G.logLevel
 	local marker = ''
 
-
 	if (level == self.LOG_ERROR) then
 		marker = marker .. 'Error: (' .. self.DZVERSION .. ') '
 	elseif (level == self.LOG_DEBUG) then
 		marker = marker .. 'Debug: '
 	elseif (level == self.LOG_INFO or level == self.LOG_MODULE_EXEC_INFO) then
-		marker = marker .. 'Info:  '
+		marker = marker .. 'Info: '
 	elseif (level == self.LOG_FORCE) then
 		marker = marker .. '!Info: '
 	end
@@ -207,6 +235,35 @@ function self.rgbToHSB(r, g, b)
 	return hsb.h, hsb.s, hsb.b, isWhite
 end
 
+local function loopGlobal(parm, baseType)
+	local res = 'id'
+	if type(parm) == 'number' then res = 'name' end
+	for i, item in ipairs(_G.domoticzData) do 
+		if item.baseType == baseType and ( item.id == parm or item.name == parm ) then return item[res] end
+	end
+	return false
+end
+
+function self.deviceExists(parm)
+	return loopGlobal(parm, 'device')
+end
+
+function self.sceneExists(parm)
+	return loopGlobal(parm, 'scene')
+end
+
+function self.groupExists(parm)
+	return loopGlobal(parm, 'group')
+end
+
+function self.variableExists(parm)
+	return loopGlobal(parm, 'uservariable')
+end
+
+function self.cameraExists(parm)
+	return loopGlobal(parm, 'camera')
+end
+
 function self.dumpTable(t, level)
 	local level = level or "> "
 	for attr, value in pairs(t or {}) do
@@ -232,10 +289,10 @@ function self.hsbToRGB(h, s, v)
 
 	local function getRGB(C,X,h)
 		if h >= 300 and h < 360 then return C, 0, X end
-		if h >= 240  then return X, 0, C end
-		if h >= 180  then return 0, X, C end
-		if h >= 120  then return 0, C, X end
-		if h >=  60  then return X, C, 0 end
+		if h >= 240 then return X, 0, C end
+		if h >= 180 then return 0, X, C end
+		if h >= 120 then return 0, C, X end
+		if h >= 60 then return X, C, 0 end
 		return C, X, 0
 	end
 
