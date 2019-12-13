@@ -1,0 +1,21 @@
+<link href="http://fonts.googleapis.com/css?family=Orbitron:700" rel="stylesheet" type="text/css">
+<style>
+div#cnt {
+width: 990px;
+margin: 0 auto;
+
+}
+div#content{
+width: 1024px;
+margin: 0 auto;
+}
+</style>
+<div id="cnt">
+<h1>For security purpose, this page can only load in the local network.</h1>
+<h2>E.g. The same network with the Smart Gateway.</h2>
+</div>
+<div id="content"> </div>
+
+<script type="text/javascript" charset="utf-8">
+     document.getElementById("content").innerHTML='<object style="width:1024px;height:700px;" type="text/html" data="http://smartgateway.local:9090" ></object>';
+</script>
