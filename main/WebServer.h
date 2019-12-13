@@ -187,7 +187,8 @@ private:
 	void Cmd_GetUptime(WebEmSession & session, const request& req, Json::Value &root);
 	void Cmd_GetActualHistory(WebEmSession & session, const request& req, Json::Value &root);
 	void Cmd_GetNewHistory(WebEmSession & session, const request& req, Json::Value &root);
-	void Cmd_GetConfig(WebEmSession & session, const request& req, Json::Value &root);
+	void Cmd_GetConfig(WebEmSession& session, const request& req, Json::Value& root);
+	void Cmd_GetLocation(WebEmSession& session, const request& req, Json::Value& root);
 	void Cmd_SendNotification(WebEmSession & session, const request& req, Json::Value &root);
 	void Cmd_EmailCameraSnapshot(WebEmSession & session, const request& req, Json::Value &root);
 	void Cmd_UpdateDevice(WebEmSession & session, const request& req, Json::Value &root);
@@ -196,6 +197,7 @@ private:
 	void Cmd_SystemShutdown(WebEmSession & session, const request& req, Json::Value &root);
 	void Cmd_SystemReboot(WebEmSession & session, const request& req, Json::Value &root);
 	void Cmd_ExcecuteScript(WebEmSession & session, const request& req, Json::Value &root);
+	void Cmd_UpdateApplication(WebEmSession& session, const request& req, Json::Value& root);
 	void Cmd_GetCosts(WebEmSession & session, const request& req, Json::Value &root);
 	void Cmd_CheckForUpdate(WebEmSession & session, const request& req, Json::Value &root);
 	void Cmd_DownloadUpdate(WebEmSession & session, const request& req, Json::Value &root);

@@ -19,7 +19,7 @@
 #include "WebServer.h"
 #include "../main/WebServerHelper.h"
 #include "../webserver/cWebem.h"
-#include "../json/json.h"
+#include "../main/json_helper.h"
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
@@ -1239,8 +1239,7 @@ bool CEventSystem::GetEventTrigger(const uint64_t ulDevID, const _eReason reason
 	if (m_eventtrigger.size() > 0)
 	{
 		time_t atime = mytime(NULL);
-		std::vector<_tEventTrigger>::iterator itt;
-		for (itt = m_eventtrigger.begin(); itt != m_eventtrigger.end(); ++itt)
+		for (auto itt = m_eventtrigger.begin(); itt != m_eventtrigger.end();)
 		{
 			if (itt->ID == ulDevID && itt->reason == reason)
 			{
@@ -1249,9 +1248,10 @@ bool CEventSystem::GetEventTrigger(const uint64_t ulDevID, const _eReason reason
 					m_eventtrigger.erase(itt);
 					return (!bEventTrigger ? true : false);
 				}
-				else
-					itt = m_eventtrigger.erase(itt) - 1;
+				itt = m_eventtrigger.erase(itt);
 			}
+			else
+				itt++;
 		}
 	}
 	return bEventTrigger;
@@ -4282,9 +4282,7 @@ namespace http {
 			bool parsingSuccessful = eventxml.length() > 0;
 			Json::Value jsonRoot;
 			if (interpreter == "Blockly") {
-				Json::Reader reader;
-				std::stringstream ssel(eventlogic);
-				parsingSuccessful = reader.parse(ssel, jsonRoot);
+				parsingSuccessful = ParseJSon(eventlogic, jsonRoot);
 			}
 
 			if (!parsingSuccessful)
@@ -4536,9 +4534,7 @@ namespace http {
 				bool parsingSuccessful = eventxml.length() > 0;
 				Json::Value jsonRoot;
 				if (interpreter == "Blockly") {
-					Json::Reader reader;
-					std::stringstream ssel(eventlogic);
-					parsingSuccessful = reader.parse(ssel, jsonRoot);
+					parsingSuccessful = ParseJSon(eventlogic, jsonRoot);
 				}
 
 				if (!parsingSuccessful)

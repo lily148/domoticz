@@ -70,7 +70,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>./Windows Libraries/Boost/Stage;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>./Windows Libraries/pthread/pthread.lib;./Windows Libraries/Curl/libcurl.lib;./Windows Libraries/openssl/ssleay32MT.lib;./Windows Libraries/openssl/libeay32MT.lib;./Windows Libraries/Lua/Debug/LuaMSVS.lib;./Windows Libraries/OpenZwave/Debug/OpenZWaveD.lib;./Windows Libraries/ZLib/zlib.lib;Setupapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;dnsapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>./Windows Libraries/pthread/pthread.lib;./Windows Libraries/Curl/libcurl.lib;./Windows Libraries/openssl/ssleay32MT.lib;./Windows Libraries/openssl/libeay32MT.lib;./Windows Libraries/Lua/Debug/LuaMSVS.lib;./Windows Libraries/OpenZwave/Debug/OpenZWaveD.lib;./Windows Libraries/ZLib/zlib.lib;crypt32.lib;Setupapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;dnsapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <Profile>false</Profile>
     </Link>
@@ -99,7 +99,7 @@
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
       <AdditionalLibraryDirectories>./Windows Libraries/Boost/Stage;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>./Windows Libraries/pthread/pthread.lib;./Windows Libraries/Curl/libcurl.lib;./Windows Libraries/openssl/ssleay32MT.lib;./Windows Libraries/openssl/libeay32MT.lib;./Windows Libraries/Lua/Release/LuaMSVS.lib;./Windows Libraries/OpenZwave/Release/OpenZWave.lib;./Windows Libraries/ZLib/zlib.lib;Setupapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;dnsapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>./Windows Libraries/pthread/pthread.lib;./Windows Libraries/Curl/libcurl.lib;./Windows Libraries/openssl/ssleay32MT.lib;./Windows Libraries/openssl/libeay32MT.lib;./Windows Libraries/Lua/Release/LuaMSVS.lib;./Windows Libraries/OpenZwave/Release/OpenZWave.lib;./Windows Libraries/ZLib/zlib.lib;crypt32.lib;Setupapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;dnsapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
@@ -607,6 +607,7 @@
     <ClInclude Include="..\main\GZipHelper.h" />
     <ClInclude Include="..\main\HTMLSanitizer.h" />
     <ClInclude Include="..\main\IFTTT.h" />
+    <ClInclude Include="..\main\json_helper.h" />
     <ClInclude Include="..\main\localtime_r.h" />
     <ClInclude Include="..\hardware\P1MeterBase.h" />
     <ClInclude Include="..\hardware\P1MeterSerial.h" />
@@ -615,26 +616,27 @@
     <ClInclude Include="..\main\LuaCommon.h" />
     <ClInclude Include="..\main\LuaHandler.h" />
     <ClInclude Include="..\main\mainstructs.h" />
+    <ClInclude Include="..\main\mosquitto_helper.h" />
     <ClInclude Include="..\main\Noncopyable.h" />
     <ClInclude Include="..\main\StoppableTask.h" />
     <ClInclude Include="..\main\TrendCalculator.h" />
     <ClInclude Include="..\main\unzip_iterator.h" />
     <ClInclude Include="..\main\unzip_stream.h" />
     <ClInclude Include="..\main\WebServerHelper.h" />
+    <ClInclude Include="..\MQTT\alias_mosq.h" />
     <ClInclude Include="..\MQTT\config.h" />
     <ClInclude Include="..\MQTT\dummypthread.h" />
-    <ClInclude Include="..\MQTT\lib_load.h" />
     <ClInclude Include="..\MQTT\logging_mosq.h" />
     <ClInclude Include="..\MQTT\memory_mosq.h" />
     <ClInclude Include="..\MQTT\messages_mosq.h" />
     <ClInclude Include="..\MQTT\mosquitto.h" />
-    <ClInclude Include="..\MQTT\mosquittopp.h" />
     <ClInclude Include="..\MQTT\mosquitto_broker.h" />
     <ClInclude Include="..\MQTT\mosquitto_internal.h" />
     <ClInclude Include="..\MQTT\mosquitto_plugin.h" />
-    <ClInclude Include="..\MQTT\mqtt3_protocol.h" />
+    <ClInclude Include="..\MQTT\mqtt_protocol.h" />
     <ClInclude Include="..\MQTT\net_mosq.h" />
-    <ClInclude Include="..\MQTT\persist.h" />
+    <ClInclude Include="..\MQTT\packet_mosq.h" />
+    <ClInclude Include="..\MQTT\property_mosq.h" />
     <ClInclude Include="..\MQTT\read_handle.h" />
     <ClInclude Include="..\MQTT\send_mosq.h" />
     <ClInclude Include="..\MQTT\socks_mosq.h" />
@@ -900,6 +902,7 @@
     <ClCompile Include="..\main\EventSystem.cpp" />
     <ClCompile Include="..\main\HTMLSanitizer.cpp" />
     <ClCompile Include="..\main\IFTTT.cpp" />
+    <ClCompile Include="..\main\json_helper.cpp" />
     <ClCompile Include="..\main\localtime_r.cpp" />
     <ClCompile Include="..\hardware\P1MeterBase.cpp" />
     <ClCompile Include="..\hardware\P1MeterSerial.cpp" />
@@ -907,6 +910,7 @@
     <ClCompile Include="..\main\Logger.cpp" />
     <ClCompile Include="..\main\LuaCommon.cpp" />
     <ClCompile Include="..\main\LuaHandler.cpp" />
+    <ClCompile Include="..\main\mosquitto_helper.cpp" />
     <ClCompile Include="..\main\Scheduler.cpp" />
     <ClCompile Include="..\main\SignalHandler.cpp" />
     <ClCompile Include="..\main\SQLHelper.cpp" />
@@ -927,7 +931,71 @@
     <ClCompile Include="..\main\TrendCalculator.cpp" />
     <ClCompile Include="..\main\WebServerHelper.cpp" />
     <ClCompile Include="..\main\WindCalculation.cpp" />
+    <ClCompile Include="..\MQTT\actions.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\alias_mosq.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\callbacks.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\connect.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\handle_auth.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\handle_connack.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\handle_disconnect.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\handle_ping.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\handle_pubackcomp.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\handle_publish.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\handle_pubrec.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\handle_pubrel.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\handle_suback.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\handle_unsuback.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\helpers.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\MQTT\logging_mosq.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\loop.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -943,11 +1011,27 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\MQTT\mosquittopp.cpp">
+    <ClCompile Include="..\MQTT\net_mosq.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\MQTT\net_mosq.c">
+    <ClCompile Include="..\MQTT\net_mosq_ocsp.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\options.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\packet_datatypes.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\packet_mosq.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\property_mosq.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -955,19 +1039,27 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\MQTT\read_handle_client.c">
+    <ClCompile Include="..\MQTT\send_connect.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\MQTT\read_handle_shared.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\MQTT\send_client_mosq.c">
+    <ClCompile Include="..\MQTT\send_disconnect.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\MQTT\send_mosq.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\send_publish.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\send_subscribe.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\send_unsubscribe.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -991,7 +1083,15 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\MQTT\utf8_mosq.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\MQTT\util_mosq.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\MQTT\util_topic.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
