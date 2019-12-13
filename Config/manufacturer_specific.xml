@@ -1503,6 +1503,7 @@
     <Product config="shenzen_neo/nas-ab01z.xml" id="0088" name="Siren Alarm" type="0003"/>
     <Product config="shenzen_neo/nas-ab01z.xml" id="1088" name="Siren Alarm" type="0003"/>
     <Product config="shenzen_neo/nas-ab01z.xml" id="6088" name="Siren Alarm" type="0003"/>
+    <Product config="shenzen_neo/nas-ab01z.xml" id="1028" name="Siren Alarm" type="0600"/>
     <Product config="shenzen_neo/nas-rc01z.xml" id="008a" name="SOS/Remote Control" type="0003"/>
     <Product config="shenzen_neo/nas-rc01z.xml" id="108a" name="SOS/Remote Control" type="0003"/>
     <Product config="shenzen_neo/nas-rc01z.xml" id="608a" name="SOS/Remote Control" type="0003"/>
