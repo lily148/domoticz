@@ -29,7 +29,5 @@ else
   chmod +x /opt/domoticz/scripts/googleassistant.sh
   /opt/domoticz/scripts/googleassistant.sh
   rm /opt/domoticz/scripts/googleassistant.sh
-  cd /opt/Domoticz-Google-Assistant
-  git pull
 
 fi
