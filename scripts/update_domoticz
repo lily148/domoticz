@@ -21,11 +21,11 @@ if [ ${OS} = "darwin" ]; then
 else
 
 #  sudo service domoticz.sh stop
-  sudo systemctl restart domoticz.service
+  #sudo systemctl restart domoticz.service
   echo "please standby... (waiting 15 seconds)"
   sleep 15
 #  sudo service domoticz.sh start
-  sudo systemctl restart domoticz.service
+ # sudo systemctl restart domoticz.service
   chmod +x /opt/domoticz/scripts/googleassistant.sh
   /opt/domoticz/scripts/googleassistant.sh
   rm /opt/domoticz/scripts/googleassistant.sh
