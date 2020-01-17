@@ -1,3 +1,16 @@
+[2.5.5]
+- Add Zwave fan to Zwave mode device adapter
+
+[2.5.4]
+- Add minutesSinceMidnight to domoticz Time object
+- Add domoticz.time.addSeconds(), -.addMinutes(), -.addHours(), -.addDays() , -.makeTime()
+- Add string.sMatch to utils
+- Made wildcard handling more resilient when magic chars are part of script triggers
+
+[2.5.3] 
+- Add timealert / errors for long running scripts
+- Add triggerHTTPResponse()
+
 [2.5.2]
 - Add actualWatt to replace WhActual (left in WhActual for compatibility reasons)
 - Add toBase64 and fromBase64 function in utils

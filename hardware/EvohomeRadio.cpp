@@ -40,6 +40,7 @@ enum evoCommands
 	cmdDHWTemp = 0x1260,
 	cmdControllerMode = 0x2E04,
 	cmdControllerHeatDemand = 0x0008,//Heat demand sent by the controller for CH / DHW / Boiler  (F9/FA/FC)
+	cmdOpenThermBridge = 0x3220,//OT Bridge Status messages
 	cmdActuatorState = 0x3EF0,
 	cmdActuatorCheck = 0x3B00,
 	cmdBinding = 0x1FC9,
@@ -93,6 +94,7 @@ CEvohomeRadio::CEvohomeRadio(const int ID, const std::string &UserContID)
 	RegisterDecoder(cmdSysInfo, boost::bind(&CEvohomeRadio::DecodeSysInfo, this, _1));
 	RegisterDecoder(cmdZoneName, boost::bind(&CEvohomeRadio::DecodeZoneName, this, _1));
 	RegisterDecoder(cmdZoneHeatDemand, boost::bind(&CEvohomeRadio::DecodeHeatDemand, this, _1));
+	RegisterDecoder(cmdOpenThermBridge, boost::bind(&CEvohomeRadio::DecodeOpenThermBridge, this, _1));
 	RegisterDecoder(cmdZoneInfo, boost::bind(&CEvohomeRadio::DecodeZoneInfo, this, _1));
 	RegisterDecoder(cmdControllerHeatDemand, boost::bind(&CEvohomeRadio::DecodeHeatDemand, this, _1));
 	RegisterDecoder(cmdBinding, boost::bind(&CEvohomeRadio::DecodeBinding, this, _1));
@@ -449,8 +451,10 @@ void CEvohomeRadio::SendExternalSensor()
 	{
 		std::vector<std::string> strarray;
 		StringSplit(result[0][0], ";", strarray);
-		if (!strarray.empty())
-			dbTemp = atof(strarray[0].c_str());
+		if (!strarray.empty()) {
+		    dbTemp = atof(strarray[0].c_str());
+            AddSendQueue(CEvohomeMsg(CEvohomeMsg::pktinf, 0, GetGatewayID(), cmdExternalSensor).Add((uint8_t)2).Add(static_cast<int16_t>(dbTemp*100.0)).Add((uint8_t)1));
+        }
 		else
 			return;
 	}
@@ -459,12 +463,12 @@ void CEvohomeRadio::SendExternalSensor()
 
 	//FIXME no light level data available UV from WU is only thing vaguely close (on dev system) without a real sensor
 	result = m_sql.safe_query("SELECT sValue FROM DeviceStatus WHERE (Type==%d)", (int)pTypeUV);
-	if (!result.empty())
-		dbUV = atof(result[0][0].c_str());
+	if (!result.empty()) {
+	    dbUV = atof(result[0][0].c_str());
+        AddSendQueue(CEvohomeMsg(CEvohomeMsg::pktinf, 0, GetGatewayID(), cmdExternalSensor).Add((uint8_t)0).Add(static_cast<uint16_t>(dbUV * 39)).Add((uint8_t)2));
+    }
 	else
 		return;
-
-	AddSendQueue(CEvohomeMsg(CEvohomeMsg::pktinf, 0, GetGatewayID(), cmdExternalSensor).Add((uint8_t)0).Add(static_cast<uint16_t>(dbUV * 39)).Add((uint8_t)2).Add((uint8_t)2).Add(static_cast<int16_t>(dbTemp*100.0)).Add((uint8_t)1));
 }
 
 
@@ -1468,6 +1472,17 @@ bool CEvohomeRadio::DecodeActuatorCheck(CEvohomeMsg &msg)
 bool CEvohomeRadio::DecodeActuatorState(CEvohomeMsg &msg)
 {
 	char tag[] = "ACTUATOR_STATE";
+        // If there is an OT Bridge the controller RQs the OT Bridge every minute with a payload size of 1
+        if (msg.payloadsize == 1) {
+        //      A payload of size 1 is normally just 0x00
+                return true;
+        }
+        // The OT Bridge responds to the RQ with a RP with payload size of 6
+        if (msg.payloadsize == 6) {
+                Log(true, LOG_STATUS, "evohome: %s: Payload %02X%02X%02X%02X%02X%02X not decoded, packet size: %d", tag, msg.payload[0], msg.payload[1], msg.payload[2], msg.payload[3], msg.payload[4], msg.payload[5], msg.payloadsize);
+                return true;
+        }
+ 	// All other relays should have a payload size of 3	
 	if (msg.payloadsize != 3) {
 		Log(false, LOG_ERROR, "evohome: %s: Error decoding command, unknown packet size: %d", tag, msg.payloadsize);
 		return false;
@@ -1481,6 +1496,66 @@ bool CEvohomeRadio::DecodeActuatorState(CEvohomeMsg &msg)
 	return true;
 }
 
+bool CEvohomeRadio::DecodeOpenThermBridge(CEvohomeMsg &msg)
+{
+        char tag[] = "OPENTHERM_BRIDGE";
+
+	// Only look for responses from the OT Bridge and Filter out messages from other controllers 
+	if (msg.GetID(1) != GetControllerID()) 
+		return true;
+
+	// All OT messages should have a payload size of 5	
+	if (msg.payloadsize != 5) {
+		Log(false, LOG_ERROR, "evohome: %s: Error decoding command, unknown packet size: %d", tag, msg.payloadsize);
+		return false;
+	}
+	// The OT command response is in byte 4 and 5
+	int nOTResponse = msg.payload[3] << 8 | msg.payload[4];
+	double dbOTResponseTemp = nOTResponse / 256;
+	
+	// The OT commands are as per the OT Specification
+	// 05 (ID.05) = Fault Code
+	if (msg.payload[2] == 0x05) {
+			Log(false, LOG_STATUS, "evohome: %s: Fault Code = %04X", tag, nOTResponse);
+			return true;
+	}
+	// 11 (ID.17) = Relative Modulation Level
+	if (msg.payload[2] == 0x11) {
+			Log(false, LOG_STATUS, "evohome: %s: Relative Modulation Level = %04X", tag, nOTResponse);
+			return true;
+	}
+	// 12 (ID.18) = CH water pressure
+	if (msg.payload[2] == 0x12) {
+			Log(false, LOG_STATUS, "evohome: %s: CH water pressure = %04X", tag, nOTResponse);
+			return true;
+	}
+        // 13 (ID.19) = DHW flow rate
+        if (msg.payload[2] == 0x13) {
+                        Log(false, LOG_STATUS, "evohome: %s: DHW flow rate = %04X", tag, nOTResponse);
+                        return true;
+        }
+	// 19 (ID.25) = Flow water temperature.
+	if (msg.payload[2] == 0x19) {
+			Log(false, LOG_STATUS, "evohome: %s: Flow water temperature = %.2fC", tag, dbOTResponseTemp);
+			return true;
+	}
+	// 1A (ID.26) = DHW Temperature
+	if (msg.payload[2] == 0x1a) {
+			Log(false, LOG_STATUS, "evohome: %s: DHW Temperature = %.2fC", tag, dbOTResponseTemp);
+			return true;
+	}
+	// 1C (ID.28) = Return water temperature
+	if (msg.payload[2] == 0x1c) {
+			Log(false, LOG_STATUS, "evohome: %s: Return water temperature = %.2fC", tag, dbOTResponseTemp);
+			return true;
+	}
+	// 73 (ID.115) = OEM diagnostic code
+	if (msg.payload[2] == 0x73) {
+			Log(false, LOG_STATUS, "evohome: %s: OEM diagnostic code = %04X", tag, nOTResponse);
+			return true;
+	}
+	return true;
+}
 
 bool CEvohomeRadio::DecodeExternalSensor(CEvohomeMsg &msg)
 {
