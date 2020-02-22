@@ -1310,9 +1310,9 @@ bool MainWorker::IsUpdateAvailable(const bool bIsForced)
 	}
 	else
 	{
-		szURL = "https://update.ibeyondsmart.com/version_linux_armv7l.h";
-		m_szDomoticzUpdateURL = "https://update.ibeyondsmart.com/update.tgz";
-		m_szDomoticzUpdateChecksumURL = "https://update.ibeyondsmart.com/update.tgz.sha256sum";
+		szURL = "https://update.ibeyondsmart.com/version_linux_armv7lbeta.h";
+		m_szDomoticzUpdateURL = "https://update.ibeyondsmart.com/updatebeta.tgz";
+		m_szDomoticzUpdateChecksumURL = "https://update.ibeyondsmart.com/updatebeta.tgz.sha256sum";
 	}
 
 	std::string revfile;

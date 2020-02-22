@@ -13,13 +13,17 @@ then
  MACH="armv7l"
 fi
 
+archive_file="https://update.ibeyondsmart.com/update.tgz"
+checksum_file="https://update.ibeyondsmart.com/update.tgz.sha256sum"
+
 CHANNEL="stable"
 if [ "$2" = "/beta" ]; then
   CHANNEL="beta"
+  archive_file="https://update.ibeyondsmart.com/updatebeta.tgz"
+  checksum_file="https://update.ibeyondsmart.com/updatebeta.tgz.sha256sum"
 fi
 
-archive_file="https://update.ibeyondsmart.com/update.tgz"
-checksum_file="https://update.ibeyondsmart.com/update.tgz.sha256sum"
+
 
 # Download checksum
 wget -q "${checksum_file}" -O update.tgz.sha256sum
