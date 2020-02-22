@@ -7,6 +7,7 @@
 #include "localtime_r.h"
 #include "Logger.h"
 #include "mainworker.h"
+#include "../main/json_helper.h"
 #ifdef WITH_EXTERNAL_SQLITE
 #include <sqlite3.h>
 #else
@@ -34,7 +35,7 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-#define DB_VERSION 138
+#define DB_VERSION 139
 
 extern http::server::CWebServerHelper m_webservers;
 extern std::string szWWWFolder;
@@ -88,6 +89,7 @@ const char *sqlCreateSceneLog =
 "CREATE TABLE IF NOT EXISTS [SceneLog] ("
 "[SceneRowID] BIGINT(10) NOT NULL, "
 "[nValue] INTEGER DEFAULT 0, "
+"[User] VARCHAR(100) DEFAULT (''), "
 "[Date] DATETIME DEFAULT (datetime('now','localtime')));";
 
 const char *sqlCreatePreferences =
@@ -2727,6 +2729,13 @@ bool CSQLHelper::OpenDatabase()
 			query("ALTER TABLE SharedDevices ADD COLUMN [Favorite] INTEGER DEFAULT 0");
 			query("UPDATE SharedDevices SET Favorite = 1 WHERE DeviceRowID IN (SELECT ID FROM DeviceStatus WHERE (Favorite=1))");
 		}
+		if (dbversion < 139)
+		{
+			if (!DoesColumnExistsInTable("User", "SceneLog"))
+			{
+				query("ALTER TABLE SceneLog ADD COLUMN [User] VARCHAR(100) DEFAULT ('')");
+			}
+		}
 	} 
 	else if (bNewInstall)
 	{
@@ -3226,13 +3235,13 @@ bool CSQLHelper::StartThread()
 	return (m_thread != NULL);
 }
 
-bool CSQLHelper::SwitchLightFromTasker(const std::string &idx, const std::string &switchcmd, const std::string &level, const std::string &color)
+bool CSQLHelper::SwitchLightFromTasker(const std::string &idx, const std::string &switchcmd, const std::string &level, const std::string &color, const std::string& User)
 {
 	_tColor ocolor(color);
-	return SwitchLightFromTasker(std::stoull(idx), switchcmd, atoi(level.c_str()), ocolor);
+	return SwitchLightFromTasker(std::stoull(idx), switchcmd, atoi(level.c_str()), ocolor, User);
 }
 
-bool CSQLHelper::SwitchLightFromTasker(uint64_t idx, const std::string &switchcmd, int level, _tColor color)
+bool CSQLHelper::SwitchLightFromTasker(uint64_t idx, const std::string &switchcmd, int level, _tColor color, const std::string& User)
 {
 	//Get Device details
 	std::vector<std::vector<std::string> > result;
@@ -3241,7 +3250,7 @@ bool CSQLHelper::SwitchLightFromTasker(uint64_t idx, const std::string &switchcm
 		return false;
 
 	std::vector<std::string> sd = result[0];
-	return m_mainworker.SwitchLightInt(sd, switchcmd, level, color, false);
+	return m_mainworker.SwitchLightInt(sd, switchcmd, level, color, false, User);
 }
 
 void CSQLHelper::Do_Work()
@@ -3325,13 +3334,13 @@ void CSQLHelper::Do_Work()
 					case pTypeGeneralSwitch:
 					case pTypeHomeConfort:
 					case pTypeFS20:
-						SwitchLightFromTasker(itt->_idx, "Off", 0, NoColor);
+						SwitchLightFromTasker(itt->_idx, "Off", 0, NoColor, itt->_sUser);
 						break;
 					case pTypeSecurity1:
 						switch (itt->_subType)
 						{
 						case sTypeSecX10M:
-							SwitchLightFromTasker(itt->_idx, "No Motion", 0, NoColor);
+							SwitchLightFromTasker(itt->_idx, "No Motion", 0, NoColor, itt->_sUser);
 							break;
 						default:
 							//just update internally
@@ -3358,7 +3367,7 @@ void CSQLHelper::Do_Work()
 						UpdateValueInt(itt->_HardwareID, itt->_ID.c_str(), itt->_unit, itt->_devType, itt->_subType, itt->_signallevel, itt->_batterylevel, itt->_nValue, itt->_sValue.c_str(), devname, true);
 					}
 					else
-						SwitchLightFromTasker(itt->_idx, "Off", 0, NoColor);
+						SwitchLightFromTasker(itt->_idx, "Off", 0, NoColor, itt->_sUser);
 				}
 			}
 			else if (itt->_ItemType == TITEM_EXECUTE_SCRIPT)
@@ -3470,12 +3479,12 @@ void CSQLHelper::Do_Work()
 			}
 			else if (itt->_ItemType == TITEM_SWITCHCMD_EVENT)
 			{
-				SwitchLightFromTasker(itt->_idx, itt->_command.c_str(), itt->_level, itt->_Color);
+				SwitchLightFromTasker(itt->_idx, itt->_command.c_str(), itt->_level, itt->_Color, itt->_sUser);
 			}
 
 			else if (itt->_ItemType == TITEM_SWITCHCMD_SCENE)
 			{
-				m_mainworker.SwitchScene(itt->_idx, itt->_command.c_str());
+				m_mainworker.SwitchScene(itt->_idx, itt->_command.c_str(), itt->_sUser);
 			}
 			else if (itt->_ItemType == TITEM_SET_VARIABLE)
 			{
@@ -3546,6 +3555,13 @@ void CSQLHelper::Do_Work()
 			else if (itt->_ItemType == TITEM_CUSTOM_COMMAND)
 			{
 				m_mainworker.m_eventsystem.CustomCommand(itt->_idx, itt->_command);
+			}
+			else if (itt->_ItemType == TITEM_CUSTOM_EVENT)
+			{
+				Json::Value eventInfo;
+				eventInfo["name"] = itt->_ID;
+				eventInfo["data"] = itt->_sValue;
+				m_mainworker.m_notificationsystem.Notify(Notification::DZ_CUSTOM, Notification::STATUS_INFO, JSonToRawString(eventInfo));
 			}
 
 			++itt;
@@ -4487,10 +4503,12 @@ uint64_t CSQLHelper::UpdateValueInt(const int HardwareID, const char* ID, const 
 		m_LastSwitchID = ID;
 		m_LastSwitchRowID = ulID;
 		result = safe_query(
-			"INSERT INTO LightingLog (DeviceRowID, nValue, sValue) "
-			"VALUES ('%" PRIu64 "', '%d', '%q')",
+			"INSERT INTO LightingLog (DeviceRowID, nValue, sValue, User) "
+			"VALUES ('%" PRIu64 "', '%d', '%q', '%q')",
 			ulID,
-			nValue, sValue);
+			nValue, sValue,
+			m_mainworker.m_szLastSwitchUser.c_str()
+			);
 
 		if (!bDeviceUsed)
 			return ulID;	//don't process further as the device is not used
@@ -6034,7 +6052,7 @@ void CSQLHelper::AddCalendarTemperature()
 		std::vector<std::string> sddev = itt;
 		uint64_t ID = std::strtoull(sddev[0].c_str(), nullptr, 10);
 
-		result = safe_query("SELECT MIN(Temperature), MAX(Temperature), AVG(Temperature), MIN(Chill), MAX(Chill), AVG(Humidity), AVG(Barometer), MIN(DewPoint), MIN(SetPoint), MAX(SetPoint), AVG(SetPoint) FROM Temperature WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<'%q')",
+		result = safe_query("SELECT MIN(Temperature), MAX(Temperature), AVG(Temperature), MIN(Chill), MAX(Chill), AVG(Humidity), AVG(Barometer), MIN(DewPoint), MIN(SetPoint), MAX(SetPoint), AVG(SetPoint) FROM Temperature WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<='%q 00:00:00')",
 			ID,
 			szDateStart,
 			szDateEnd
@@ -6113,7 +6131,7 @@ void CSQLHelper::AddCalendarUpdateRain()
 
 		if (subType == sTypeRAINWU || subType == sTypeRAINByRate)
 		{
-			result = safe_query("SELECT Total, Total, Rate FROM Rain WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<'%q') ORDER BY ROWID DESC LIMIT 1",
+			result = safe_query("SELECT Total, Total, Rate FROM Rain WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<='%q 00:00:00') ORDER BY ROWID DESC LIMIT 1",
 				ID,
 				szDateStart,
 				szDateEnd
@@ -6121,7 +6139,7 @@ void CSQLHelper::AddCalendarUpdateRain()
 		}
 		else
 		{
-			result = safe_query("SELECT MIN(Total), MAX(Total), MAX(Rate) FROM Rain WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<'%q')",
+			result = safe_query("SELECT MIN(Total), MAX(Total), MAX(Rate) FROM Rain WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<='%q 00:00:00')",
 				ID,
 				szDateStart,
 				szDateEnd
@@ -6239,7 +6257,7 @@ void CSQLHelper::AddCalendarUpdateMeter()
 		}
 
 
-		result = safe_query("SELECT MIN(Value), MAX(Value), AVG(Value) FROM Meter WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<'%q')",
+		result = safe_query("SELECT MIN(Value), MAX(Value), AVG(Value) FROM Meter WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<='%q 00:00:00')",
 			ID,
 			szDateStart,
 			szDateEnd
@@ -6419,7 +6437,7 @@ void CSQLHelper::AddCalendarUpdateMultiMeter()
 		//_eMeterType metertype=(_eMeterType)switchtype;
 
 		result = safe_query(
-			"SELECT MIN(Value1), MAX(Value1), MIN(Value2), MAX(Value2), MIN(Value3), MAX(Value3), MIN(Value4), MAX(Value4), MIN(Value5), MAX(Value5), MIN(Value6), MAX(Value6) FROM MultiMeter WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<'%q')",
+			"SELECT MIN(Value1), MAX(Value1), MIN(Value2), MAX(Value2), MIN(Value3), MAX(Value3), MIN(Value4), MAX(Value4), MIN(Value5), MAX(Value5), MIN(Value6), MAX(Value6) FROM MultiMeter WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<='%q 00:00:00')",
 			ID,
 			szDateStart,
 			szDateEnd
@@ -6527,7 +6545,7 @@ void CSQLHelper::AddCalendarUpdateWind()
 		std::vector<std::string> sddev = itt;
 		uint64_t ID = std::strtoull(sddev[0].c_str(), nullptr, 10);
 
-		result = safe_query("SELECT AVG(Direction), MIN(Speed), MAX(Speed), MIN(Gust), MAX(Gust) FROM Wind WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<'%q')",
+		result = safe_query("SELECT AVG(Direction), MIN(Speed), MAX(Speed), MIN(Gust), MAX(Gust) FROM Wind WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<='%q 00:00:00')",
 			ID,
 			szDateStart,
 			szDateEnd
@@ -6585,7 +6603,7 @@ void CSQLHelper::AddCalendarUpdateUV()
 		std::vector<std::string> sddev = itt;
 		uint64_t ID = std::strtoull(sddev[0].c_str(), nullptr, 10);
 
-		result = safe_query("SELECT MAX(Level) FROM UV WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<'%q')",
+		result = safe_query("SELECT MAX(Level) FROM UV WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<='%q 00:00:00')",
 			ID,
 			szDateStart,
 			szDateEnd
@@ -6635,7 +6653,7 @@ void CSQLHelper::AddCalendarUpdatePercentage()
 		std::vector<std::string> sddev = itt;
 		uint64_t ID = std::strtoull(sddev[0].c_str(), nullptr, 10);
 
-		result = safe_query("SELECT MIN(Percentage), MAX(Percentage), AVG(Percentage) FROM Percentage WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<'%q')",
+		result = safe_query("SELECT MIN(Percentage), MAX(Percentage), AVG(Percentage) FROM Percentage WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<='%q 00:00:00')",
 			ID,
 			szDateStart,
 			szDateEnd
@@ -6689,7 +6707,7 @@ void CSQLHelper::AddCalendarUpdateFan()
 		std::vector<std::string> sddev = itt;
 		uint64_t ID = std::strtoull(sddev[0].c_str(), nullptr, 10);
 
-		result = safe_query("SELECT MIN(Speed), MAX(Speed), AVG(Speed) FROM Fan WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<'%q')",
+		result = safe_query("SELECT MIN(Speed), MAX(Speed), AVG(Speed) FROM Fan WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<='%q 00:00:00')",
 			ID,
 			szDateStart,
 			szDateEnd
@@ -7456,6 +7474,7 @@ bool CSQLHelper::BackupDatabase(const std::string &OutputFile)
 	// Close the database connection opened on database file zFilename
 	// and return the result of this function.
 	sqlite3_close(pFile);
+
 	return (rc == SQLITE_OK);
 }
 
@@ -8380,12 +8399,13 @@ bool CSQLHelper::InsertCustomIconFromZipFile(const std::string &szZipFile, std::
 			std::string _defFile = std::string(pFBuf, pFBuf + fsize);
 			free(pFBuf);
 
+			_defFile.erase(std::remove(_defFile.begin(), _defFile.end(), '\r'), _defFile.end());
+
 			std::vector<std::string> _Lines;
 			StringSplit(_defFile, "\n", _Lines);
 			for (const auto & itt : _Lines)
 			{
 				std::string sLine = itt;
-				sLine.erase(std::remove(sLine.begin(), sLine.end(), '\r'), sLine.end());
 				std::vector<std::string> splitresult;
 				StringSplit(sLine, ";", splitresult);
 				if (splitresult.size() == 3)

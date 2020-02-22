@@ -104,8 +104,8 @@ function cleanup
 
 function stopBackgroundProcesses
 	{
-		pkill node 2>&1 >/dev/null
-		pkill domoticz 2>&1 >/dev/null
+		pkill node  2>&1 >/dev/null
+		pkill domoticz  2>&1 >/dev/null
 		if [[ $1 -eq 1 ]] ;then
 			exit $1 2>&1 >/dev/null
 		fi
@@ -118,6 +118,7 @@ function fillTimes
 		EventHelpers_ExpectedSeconds=10
 		EventHelpersStorage_ExpectedSeconds=10
 		HTTPResponse_ExpectedSeconds=10
+		Lodash_ExpectedSeconds=10
 		ScriptdzVentsDispatching_ExpectedSeconds=10
 		TimedCommand_ExpectedSeconds=10
 		Time_ExpectedSeconds=30
@@ -128,6 +129,7 @@ function fillTimes
 		EventState_ExpectedSeconds=190
 		Integration_ExpectedSeconds=330
 		SelectorSwitch_ExpectedSeconds=100
+		SystemAndCustomEvents_ExpectedSeconds=10
 	}
 
 function fillNumberOfTests
@@ -137,9 +139,10 @@ function fillNumberOfTests
 		EventHelpers_ExpectedTests=32
 		EventHelpersStorage_ExpectedTests=50
 		HTTPResponse_ExpectedTests=6
+		Lodash_ExpectedTests=100
 		ScriptdzVentsDispatching_ExpectedTests=2
 		TimedCommand_ExpectedTests=42
-		Time_ExpectedTests=332
+		Time_ExpectedTests=340
 		Utils_ExpectedTests=25
 		Variable_ExpectedTests=15
 		ContactDoorLockInvertedSwitch_ExpectedTests=2
@@ -147,6 +150,7 @@ function fillNumberOfTests
 		EventState_ExpectedTests=2
 		Integration_ExpectedTests=217
 		SelectorSwitch_ExpectedTests=2
+		SystemAndCustomEvents_ExpectedTests=7
 	}
 
 function testDir
@@ -161,11 +165,18 @@ function testDir
 			testFile=${testFile#"$prefix"}
 			Expected=$(( $(($testFile$underScoreSeconds)) / factor ))
 			Tests=$(( $(($testFile$underScoreTests)) / 1 ))
+			if test $i == 'testSystemAndCustomEvents.lua' ; then
+				tput sc # save cursor
+				stopBackgroundProcesses 
+				sleep 5
+				tput rc;tput el # rc
+			fi
 			echo -n $(showTime) " "
 			printf "%-42s %4d "  $testFile $Expected 
 			printf "%10d" $Tests
 			# busted $i  2>&1 >/dev/null
 			busted $i  > $outfile
+			
 			if [[ $? -ne 0 ]];then
 				printf "%-10s" "===>> NOT OK"
 				echo
@@ -205,6 +216,9 @@ cp $basedir/domoticz.db $basedir/domoticz.db_$$
 rm -f $basedir/domoticz.db
 
 cd $basedir
+cp dzVents/runtime/integration-tests/scriptTestCustomAndSystemEventsScript.lua scripts/dzVents/scripts/scriptTestCustomAndSystemEventsScript.lua
+
+cd $basedir
 ./domoticz  -www 8080 -sslwww 444 > domoticz.log$$ &
 checkStarted "domoticz" 20
 
@@ -220,11 +234,12 @@ cd $basedir/dzVents/runtime/tests
 testDir
 cd $basedir/dzVents/runtime/integration-tests
 testDir
+
 echo
 echo
 
 cd $basedir
-expectedErrorCount=5
+expectedErrorCount=6
 grep "Results stage 2: SUCCEEDED" domoticz.log$$ 2>&1 >/dev/null
 if [[ $? -eq 0 ]];then
 	grep "Results stage 1: SUCCEEDED" domoticz.log$$ 2>&1 >/dev/null

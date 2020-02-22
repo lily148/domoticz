@@ -244,6 +244,7 @@ static const STR_TABLE_SINGLE	HardwareTypeTable[] =
 	{ HTYPE_S0SmartMeterTCP, "S0 Meter with LAN interface",							"S0 Meter" },
 	{ HTYPE_BuienRadar, "Buienradar (Dutch Weather Information)",					"BuienRadar" },
 	{ HTYPE_AccuWeather, "AccuWeather (Weather Lookup)",							"AccuWeather" },
+	{ HTYPE_Tesla, "Tesla Model S/3/X",												"Tesla" },
 	{ HTYPE_BleBox, "BleBox devices",												"BleBox" },
 	{ HTYPE_Ec3kMeterTCP, "Energy Count 3000/ NETBSEM4/ La Crosse RT-10 LAN",		"Ec3kMeter" },
 	{ HTYPE_OpenWeatherMap, "Open Weather Map",										"OpenWeatherMap" },
@@ -278,6 +279,7 @@ static const STR_TABLE_SINGLE	HardwareTypeTable[] =
 	{ HTYPE_DenkoviHTTPDevices, "Denkovi Modules with LAN (HTTP) Interface",		"Denkovi" },
 	{ HTYPE_DenkoviUSBDevices, "Denkovi Modules with USB Interface",				"Denkovi" },
 	{ HTYPE_DenkoviTCPDevices, "Denkovi Modules with LAN (TCP) Interface",			"Denkovi" },
+	{ HTYPE_OctoPrint, "OctoPrint (MQTT/Gina Haussge) with LAN interface",			"OctoPrint" },
 	{ 0, NULL, NULL }
 };
 
@@ -3706,6 +3708,7 @@ bool IsNetworkDevice(const _eHardwareTypes htype)
 	case HTYPE_eHouseTCP:
 	case HTYPE_TTN_MQTT:
 	case HTYPE_S0SmartMeterTCP:
+	case HTYPE_OctoPrint:
 		return true;
 	default:
 		return false;

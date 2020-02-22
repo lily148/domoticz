@@ -1,3 +1,28 @@
+[3.0.0] 
+ - Add system-events triggers as option to the on = { ... } section. Scripts can now be triggered based on these system-events: 
+	 - start
+	 - stop
+	 - manualBackupFinished,
+	 - dailyBackupFinished
+	 - hourlyBackupFinished
+	 - monthlyBackupFinished
+
+ - Add custom-events triggers as option to the on = { ... } section. You can now send an event trigger to start subscribed dzVents scripts. customEvents can be triggered by:
+	 - dzVents domoticz.emitEvent(name, data )  --  command  (data = optional)
+	 - JSON: json.htm?type=command&param=customevent&event=MyEvent&data=myData ( data = optional )
+	 - MQTT: {"command" : "customevent", "event" :    "MyEvent" , "data" : "myData" } ( data = opt ional )
+ - Add method  domoticz.emitEvent()
+ - Add attribute `mode` to Evohome controller
+ - Add option to dumpTable() and ([device][uservariable][scene][group].dump() to os file
+
+[2.5.7]
+- Add option checkFirst to switchSelector method
+
+[2.5.6]
+- Add dayName, monthName, monthAbbrName and time as time attributes
+- Add _.round, _.isEqual functions to lodash.lua
+- Add testLodash.lua as testModule for lodash 
+
 [2.5.5]
 - Add Zwave fan to Zwave mode device adapter
 

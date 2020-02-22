@@ -322,8 +322,11 @@ main/localtime_r.cpp
 main/Logger.cpp
 main/LuaCommon.cpp
 main/LuaHandler.cpp
+main/LuaTable.cpp
 main/mainworker.cpp
 main/mosquitto_helper.cpp
+main/NotificationObserver.cpp
+main/NotificationSystem.cpp
 main/RFXNames.cpp
 main/Scheduler.cpp
 main/SignalHandler.cpp
@@ -422,6 +425,7 @@ hardware/Nest.cpp
 hardware/NestOAuthAPI.cpp
 hardware/Netatmo.cpp
 hardware/HttpPoller.cpp
+hardware/OctoPrintMQTT.cpp
 hardware/OnkyoAVTCP.cpp
 hardware/OpenWeatherMap.cpp
 hardware/OpenWebNetTCP.cpp
@@ -472,6 +476,8 @@ hardware/TeleinfoBase.cpp
 hardware/TeleinfoSerial.cpp
 hardware/Tellstick.cpp
 hardware/TellstickFactory.cpp
+hardware/TeslaApi.cpp
+hardware/Tesla.cpp
 hardware/Thermosmart.cpp
 hardware/ToonThermostat.cpp
 hardware/TTNMQTT.cpp
