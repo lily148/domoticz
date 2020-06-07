@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <map>
+
 enum _eTimeFormat
 {
 	TF_Time = 0,	// 0
@@ -12,6 +15,7 @@ unsigned int Crc32(unsigned int crc, const unsigned char* buf, size_t size);
 void StringSplit(std::string str, const std::string &delim, std::vector<std::string> &results);
 uint64_t hexstrtoui64(const std::string &str);
 std::string ToHexString(const uint8_t* pSource, const size_t length);
+std::vector<char> HexToBytes(const std::string& hex);
 void stdreplace(
 	std::string &inoutstring,
 	const std::string& replaceWhat,
@@ -37,6 +41,8 @@ double CalculateAltitudeFromPressure(double pressure);
 float pressureSeaLevelFromAltitude(float altitude, float atmospheric, float temp);
 float pressureToAltitude(float seaLevel, float atmospheric, float temp);
 
+double deg2rad(double deg);
+double distanceEarth(double lat1d, double lon1d, double lat2d, double lon2d);
 std::string &stdstring_ltrim(std::string &s);
 std::string &stdstring_rtrim(std::string &s);
 std::string &stdstring_trim(std::string &s);

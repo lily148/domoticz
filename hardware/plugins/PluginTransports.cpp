@@ -9,9 +9,11 @@
 #include "PluginTransports.h"
 #include "PythonObjects.h"
 
-#include "../main/Logger.h"
+#include "../../main/Logger.h"
 #include "icmp_header.hpp"
 #include "ipv4_header.hpp"
+
+using namespace boost::placeholders;
 
 namespace Plugins {
 

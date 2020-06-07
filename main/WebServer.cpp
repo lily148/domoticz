@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "WebServer.h"
 #include "WebServerHelper.h"
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <iostream>
 #include <fstream>
 #include "mainworker.h"
@@ -24,6 +24,7 @@
 #include "../hardware/AccuWeather.h"
 #include "../hardware/OpenWeatherMap.h"
 #include "../hardware/Buienradar.h"
+#include "../hardware/Meteorologisk.h"
 #include "../hardware/Kodi.h"
 #include "../hardware/Limitless.h"
 #include "../hardware/LogitechMediaServer.h"
@@ -42,7 +43,7 @@
 #include "../hardware/Tellstick.h"
 #include "../webserver/Base64.h"
 #include "../smtpclient/SMTPClient.h"
-#include "../json/json.h"
+#include <json/json.h>
 #include "../main/json_helper.h"
 #include "Logger.h"
 #include "SQLHelper.h"
@@ -64,6 +65,8 @@
 
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
+
+using namespace boost::placeholders;
 
 #define round(a) ( int ) ( a + .5 )
 
@@ -1338,6 +1341,8 @@ namespace http {
 			}
 			else if (htype == HTYPE_EcoCompteur) {
 				//all fine here!
+			} else if (htype == HTYPE_Meteorologisk) {
+				//all fine here!
 			}
 			else
 				return;
@@ -1731,6 +1736,9 @@ namespace http {
 				//All fine here
 			}
 			else if (htype == HTYPE_EnphaseAPI) {
+				//all fine here!
+			}
+			else if(htype == HTYPE_Meteorologisk) {
 				//all fine here!
 			}
 			else
@@ -3047,7 +3055,10 @@ namespace http {
 			}
 			Json::Value eventInfo;
 			eventInfo["name"] = request::findValue(&req, "event");
-			eventInfo["data"] = request::findValue(&req, "data");
+			if (!req.content.empty())
+				eventInfo["data"] = req.content.c_str(); // data from POST
+			else
+				eventInfo["data"] = request::findValue(&req, "data"); // data in URL
 
 			if (eventInfo["name"].empty())
 			{
@@ -4726,8 +4737,8 @@ namespace http {
 					}
 					else if (lighttype == 400) {
 						//Openwebnet Bus Blinds
-						dtype = pTypeLighting2;
-						subtype = sTypeAC;
+						dtype = pTypeGeneralSwitch;
+						subtype = sSwitchTypeAC;
 						devid = request::findValue(&req, "id");
 						sunitcode = request::findValue(&req, "unitcode");
 						if (
@@ -4738,8 +4749,8 @@ namespace http {
 					}
 					else if (lighttype == 401) {
 						//Openwebnet Bus Lights
-						dtype = pTypeLighting2;
-						subtype = sTypeAC;
+						dtype = pTypeGeneralSwitch;
+						subtype = sSwitchTypeAC;
 						devid = request::findValue(&req, "id");
 						sunitcode = request::findValue(&req, "unitcode");
 						if (
@@ -4751,8 +4762,8 @@ namespace http {
 					else if (lighttype == 402)
 					{
 						//Openwebnet Bus Auxiliary
-						dtype = pTypeLighting2;
-						subtype = sTypeAC;
+						dtype = pTypeGeneralSwitch;
+						subtype = sSwitchTypeAC;
 						devid = request::findValue(&req, "id");
 						sunitcode = request::findValue(&req, "unitcode");
 						if (
@@ -4799,8 +4810,8 @@ namespace http {
 					}
 					else if (lighttype == 407) {
 						//Openwebnet Bus Custom
-						dtype = pTypeLighting2;
-						subtype = sTypeAC;
+						dtype = pTypeGeneralSwitch;
+						subtype = sSwitchTypeAC;
 						devid = request::findValue(&req, "id");
 						sunitcode = request::findValue(&req, "unitcode");
 						std::string StrParam1 = request::findValue(&req, "StrParam1");
@@ -5361,8 +5372,8 @@ namespace http {
 					else if (lighttype == 400)
 					{
 						//Openwebnet Bus Blinds
-						dtype = pTypeLighting2;
-						subtype = sTypeAC;
+						dtype = pTypeGeneralSwitch;
+						subtype = sSwitchTypeAC;
 						devid = request::findValue(&req, "id");
 						sunitcode = request::findValue(&req, "unitcode");
 						if (
@@ -5374,8 +5385,8 @@ namespace http {
 					else if (lighttype == 401)
 					{
 						//Openwebnet Bus Lights
-						dtype = pTypeLighting2;
-						subtype = sTypeAC;
+						dtype = pTypeGeneralSwitch;
+						subtype = sSwitchTypeAC;
 						devid = request::findValue(&req, "id");
 						sunitcode = request::findValue(&req, "unitcode");
 						if (
@@ -5387,8 +5398,8 @@ namespace http {
 					else if (lighttype == 402)
 					{
 						//Openwebnet Bus Auxiliary
-						dtype = pTypeLighting2;
-						subtype = sTypeAC;
+						dtype = pTypeGeneralSwitch;
+						subtype = sSwitchTypeAC;
 						devid = request::findValue(&req, "id");
 						sunitcode = request::findValue(&req, "unitcode");
 						if (
@@ -5438,8 +5449,8 @@ namespace http {
 					}
 					else if (lighttype == 407) {
 						//Openwebnet Bus Custom
-						dtype = pTypeLighting2;
-						subtype = sTypeAC;
+						dtype = pTypeGeneralSwitch;
+						subtype = sSwitchTypeAC;
 						devid = request::findValue(&req, "id");
 						sunitcode = request::findValue(&req, "unitcode");
 						StrParam1 = request::findValue(&req, "StrParam1");
@@ -9129,6 +9140,15 @@ namespace http {
 								root["result"][ii]["forecast_url"] = base64_encode(forecast_url);
 							}
 						}
+						else if (pHardware->HwdType == HTYPE_Meteorologisk)
+						{
+							CMeteorologisk* pWHardware = reinterpret_cast<CMeteorologisk*>(pHardware);
+							std::string forecast_url = pWHardware->GetForecastURL();
+							if (forecast_url != "")
+							{
+								root["result"][ii]["forecast_url"] = base64_encode(forecast_url);
+							}
+						}
 					}
 
 					if ((pHardware != NULL) && (pHardware->HwdType == HTYPE_PythonPlugin))
@@ -12410,10 +12430,26 @@ namespace http {
 			std::string smessage = request::findValue(&req, "message");
 			if (smessage.empty())
 				return;
-			root["status"] = "OK";
 			root["title"] = "AddLogMessage";
 
-			_log.Log(LOG_STATUS, "%s", smessage.c_str());
+			_eLogLevel logLevel = LOG_STATUS;
+			std::string slevel = request::findValue(&req, "level");
+			if (!slevel.empty())
+			{
+				if ((slevel == "1") || (slevel == "normal"))
+					logLevel = LOG_NORM;
+				else if ((slevel == "2") || (slevel == "status"))
+					logLevel = LOG_STATUS;
+				else if ((slevel == "4") || (slevel == "error"))
+					logLevel = LOG_ERROR;
+				else {
+					root["status"] = "ERR";
+					return;
+				}
+			}
+			root["status"] = "OK";
+
+			_log.Log(logLevel, "%s", smessage.c_str());
 		}
 
 		void CWebServer::Cmd_ClearShortLog(WebEmSession & session, const request& req, Json::Value &root)
@@ -15867,20 +15903,15 @@ namespace http {
 
 								root["result"][ii]["d"] = sd[4].substr(0, 16);
 
-								double counter_1 = atof(sd[5].c_str());
-								double counter_2 = atof(sd[6].c_str());
-								double counter_3 = atof(sd[7].c_str());
-								double counter_4 = atof(sd[8].c_str());
+								double counter_1 = std::stod(sd[5]);
+								double counter_2 = std::stod(sd[6]);
+								double counter_3 = std::stod(sd[7]);
+								double counter_4 = std::stod(sd[8]);
 
-								std::string szUsage1 = sd[0];
-								std::string szDeliv1 = sd[1];
-								std::string szUsage2 = sd[2];
-								std::string szDeliv2 = sd[3];
-
-								float fUsage_1 = static_cast<float>(atof(szUsage1.c_str()));
-								float fUsage_2 = static_cast<float>(atof(szUsage2.c_str()));
-								float fDeliv_1 = static_cast<float>(atof(szDeliv1.c_str()));
-								float fDeliv_2 = static_cast<float>(atof(szDeliv2.c_str()));
+								float fUsage_1 = std::stof(sd[0]);
+								float fUsage_2 = std::stof(sd[2]);
+								float fDeliv_1 = std::stof(sd[1]);
+								float fDeliv_2 = std::stof(sd[3]);
 
 								fDeliv_1 = (fDeliv_1 < 10) ? 0 : fDeliv_1;
 								fDeliv_2 = (fDeliv_2 < 10) ? 0 : fDeliv_2;
@@ -15958,15 +15989,10 @@ namespace http {
 
 								root["resultprev"][iPrev]["d"] = sd[4].substr(0, 16);
 
-								std::string szUsage1 = sd[0];
-								std::string szDeliv1 = sd[1];
-								std::string szUsage2 = sd[2];
-								std::string szDeliv2 = sd[3];
-
-								float fUsage_1 = static_cast<float>(atof(szUsage1.c_str()));
-								float fUsage_2 = static_cast<float>(atof(szUsage2.c_str()));
-								float fDeliv_1 = static_cast<float>(atof(szDeliv1.c_str()));
-								float fDeliv_2 = static_cast<float>(atof(szDeliv2.c_str()));
+								float fUsage_1 = std::stof(sd[0]);
+								float fUsage_2 = std::stof(sd[2]);
+								float fDeliv_1 = std::stof(sd[1]);
+								float fDeliv_2 = std::stof(sd[3]);
 
 								if ((fDeliv_1 != 0) || (fDeliv_2 != 0))
 									bHaveDeliverd = true;

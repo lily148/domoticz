@@ -39,17 +39,17 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#include "../Options.h"
-#include "../Manager.h"
-#include "../Node.h"
-#include "../Group.h"
-#include "../Notification.h"
-#include "..//main/Logger.h"
+#include <Options.h>
+#include <Manager.h>
+#include <Node.h>
+#include <Group.h>
+#include <Notification.h>
+#include "../../../main/Logger.h"
 
 #include <sys/stat.h>
 #include <fstream>
 #include <iostream>
-#include <tinyxml.h>
+#include "../../../tinyxpath/tinyxml.h"
 
 //#include "microhttpd.h"
 #include "ozwcp.h"

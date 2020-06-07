@@ -89,7 +89,7 @@
 #include "../hardware/NestOAuthAPI.h"
 #include "../hardware/Thermosmart.h"
 #include "../hardware/Tado.h"
-#include "../hardware/Tesla.h"
+#include "../hardware/eVehicles/eVehicle.h"
 #include "../hardware/Kodi.h"
 #include "../hardware/Netatmo.h"
 #include "../hardware/HttpPoller.h"
@@ -125,7 +125,9 @@
 #include "../hardware/ZiBlueTCP.h"
 #include "../hardware/Yeelight.h"
 #include "../hardware/XiaomiGateway.h"
+#ifdef ENABLE_PYTHON
 #include "../hardware/plugins/Plugins.h"
+#endif
 #include "../hardware/Arilux.h"
 #include "../hardware/OpenWebNetUSB.h"
 #include "../hardware/InComfort.h"
@@ -142,6 +144,7 @@
 #include "../hardware/TTNMQTT.h"
 #include "../hardware/Buienradar.h"
 #include "../hardware/OctoPrintMQTT.h"
+#include "../hardware/Meteorologisk.h"
 
 // load notifications configuration
 #include "../notifications/NotificationHelper.h"
@@ -174,12 +177,14 @@
 #include <fstream>
 #endif
 
+using namespace boost::placeholders;
+
 #define round(a) ( int ) ( a + .5 )
 
 extern std::string szStartupFolder;
 extern std::string szUserDataFolder;
 extern std::string szWWWFolder;
-extern std::string szAppVersion;
+extern int iAppRevision;
 extern std::string szWebRoot;
 extern bool g_bUseUpdater;
 extern http::server::_eWebCompressionMode g_wwwCompressMode;
@@ -692,7 +697,7 @@ bool MainWorker::AddHardwareFromParams(
 		pHardware = new RFXComTCP(ID, Address, Port, (CRFXBase::_eRFXAsyncType)atoi(Extra.c_str()));
 		break;
 	case HTYPE_P1SmartMeter:
-		pHardware = new P1MeterSerial(ID, SerialPort, (Mode1 == 1) ? 115200 : 9600, (Mode2 != 0), Mode3);
+		pHardware = new P1MeterSerial(ID, SerialPort, (Mode1 == 1) ? 115200 : 9600, (Mode2 != 0), Mode3, Password);
 		break;
 	case HTYPE_Rego6XX:
 		pHardware = new CRego6XXSerial(ID, SerialPort, Mode1);
@@ -763,7 +768,7 @@ bool MainWorker::AddHardwareFromParams(
 		break;
 	case HTYPE_P1SmartMeterLAN:
 		//LAN
-		pHardware = new P1MeterTCP(ID, Address, Port, (Mode2 != 0), Mode3);
+		pHardware = new P1MeterTCP(ID, Address, Port, (Mode2 != 0), Mode3, Password);
 		break;
 	case HTYPE_WOL:
 		//LAN
@@ -779,7 +784,7 @@ bool MainWorker::AddHardwareFromParams(
 		break;
 	case HTYPE_MySensorsMQTT:
 		//LAN
-		pHardware = new MySensorsMQTT(ID, Name, Address, Port, Username, Password, Extra, Mode2, Mode1);
+		pHardware = new MySensorsMQTT(ID, Name, Address, Port, Username, Password, Extra, Mode2, Mode1, Mode3 != 0);
 		break;
 	case HTYPE_RFLINKTCP:
 		//LAN
@@ -791,7 +796,7 @@ bool MainWorker::AddHardwareFromParams(
 		break;
 	case HTYPE_MQTT:
 		//LAN
-		pHardware = new MQTT(ID, Address, Port, Username, Password, Extra, Mode2, Mode1, (std::string("Domoticz") + szRandomUUID).c_str());
+		pHardware = new MQTT(ID, Address, Port, Username, Password, Extra, Mode2, Mode1, (std::string("Domoticz") + szRandomUUID).c_str(), Mode3 != 0);
 		break;
 	case HTYPE_eHouseTCP:
 		//eHouse LAN, WiFi,Pro and other via eHousePRO gateway
@@ -976,7 +981,7 @@ bool MainWorker::AddHardwareFromParams(
 		pHardware = new CTado(ID, Username, Password);
 		break;
 	case HTYPE_Tesla:
-		pHardware = new CTesla(ID, Username, Password, Extra);
+		pHardware = new CeVehicle(ID, CeVehicle::Tesla, Username, Password, Mode1, Mode2, Mode3, Extra);
 		break;
 	case HTYPE_Honeywell:
 		pHardware = new CHoneywell(ID, Username, Password, Extra);
@@ -1032,7 +1037,7 @@ bool MainWorker::AddHardwareFromParams(
 		pHardware = new DomoticzInternal(ID);
 		break;
 	case HTYPE_OpenWebNetTCP:
-		pHardware = new COpenWebNetTCP(ID, Address, Port, Password, Mode1);
+		pHardware = new COpenWebNetTCP(ID, Address, Port, Password, Mode1, Mode2);
 		break;
 	case HTYPE_BleBox:
 		pHardware = new BleBox(ID, Mode1);
@@ -1091,10 +1096,13 @@ bool MainWorker::AddHardwareFromParams(
 		pHardware = new CTTNMQTT(ID, Address, Port, Username, Password, Extra);
 		break;
 	case HTYPE_BuienRadar:
-		pHardware = new CBuienRadar(ID, Mode1, Mode2);
+		pHardware = new CBuienRadar(ID, Mode1, Mode2, Password);
 		break;
 	case HTYPE_OctoPrint:
 		pHardware = new COctoPrintMQTT(ID, Address, Port, Username, Password, Extra);
+		break;
+	case HTYPE_Meteorologisk:
+		pHardware = new CMeteorologisk(ID, Password); //Password is location here.
 		break;
 	}
 
@@ -1329,12 +1337,11 @@ bool MainWorker::IsUpdateAvailable(const bool bIsForced)
 	if (strarray.size() != 3)
 		return false;
 
-	int version = atoi(szAppVersion.substr(szAppVersion.find(".") + 1).c_str());
 	m_iRevision = atoi(strarray[2].c_str());
 #ifdef DEBUG_DOWNLOAD
 	m_bHaveUpdate = true;
 #else
-	m_bHaveUpdate = ((version != m_iRevision) && (version < m_iRevision));
+	m_bHaveUpdate = ((iAppRevision != m_iRevision) && (iAppRevision < m_iRevision));
 #endif
 	return m_bHaveUpdate;
 }
@@ -2467,6 +2474,7 @@ void MainWorker::ProcessRXMessage(const CDomoticzHardwareBase* pHardware, const 
 	if ((BatteryLevel != -1) && (procResult.bProcessBatteryValue))
 	{
 		m_sql.safe_query("UPDATE DeviceStatus SET BatteryLevel=%d WHERE (ID==%" PRIu64 ")", BatteryLevel, DeviceRowIdx);
+		m_eventsystem.UpdateBatteryLevel(DeviceRowIdx, BatteryLevel); //GizMoCuz, temporarily... 
 	}
 
 	if ((defaultName != NULL) && ((DeviceName == "Unknown") || (DeviceName.empty())))
@@ -3179,6 +3187,9 @@ void MainWorker::decode_Rain(const CDomoticzHardwareBase* pHardware, const tRBUF
 			break;
 		case sTypeRAIN8:
 			WriteMessage("subtype       = RAIN8 - Davis");
+			break;
+		case sTypeRAIN9:
+			WriteMessage("subtype       = RAIN9 - TFA 30.3233.01");
 			break;
 		case sTypeRAINWU:
 			WriteMessage("subtype       = Weather Underground (Total Rain)");
@@ -4953,6 +4964,9 @@ void MainWorker::decode_Lighting2(const CDomoticzHardwareBase* pHardware, const 
 				sprintf(szTmp, "Set Group Level: %d", level);
 				WriteMessage(szTmp);
 				break;
+			case gswitch_sStop:
+				WriteMessage("Stop");
+				break;
 			default:
 				WriteMessage("UNKNOWN");
 				break;
@@ -6412,6 +6426,12 @@ void MainWorker::decode_BLINDS1(const CDomoticzHardwareBase* pHardware, const tR
 			break;
 		case sTypeBlindsT16:
 			WriteMessage("subtype       = Zemismart");
+			break;
+		case sTypeBlindsT17:
+			WriteMessage("subtype       = Gaposa");
+			break;
+		case sTypeBlindsT18:
+			WriteMessage("subtype       = Cherubini");
 			break;
 		default:
 			sprintf(szTmp, "ERROR: Unknown Sub type for Packet type= %02X:%02X:", pResponse->BLINDS1.packettype, pResponse->BLINDS1.subtype);
@@ -8942,6 +8962,8 @@ void MainWorker::decode_Energy(const CDomoticzHardwareBase* pHardware, const tRB
 	gdevice.subtype = sTypeKwh;
 	gdevice.floatval1 = (float)instant;
 	gdevice.floatval2 = (float)total;
+	gdevice.rssi = SignalLevel;
+	gdevice.battery_level = BatteryLevel;
 
 	int voltage = 230;
 	m_sql.GetPreferencesVar("ElectricVoltage", voltage);
@@ -8952,7 +8974,7 @@ void MainWorker::decode_Energy(const CDomoticzHardwareBase* pHardware, const tRB
 		gdevice.floatval2 *= mval;
 	}
 
-	decode_General(pHardware, (const tRBUF*)&gdevice, procResult, SignalLevel, BatteryLevel);
+	decode_General(pHardware, (const tRBUF*)&gdevice, procResult);
 	procResult.bProcessBatteryValue = false;
 }
 
@@ -9927,7 +9949,7 @@ void MainWorker::decode_Usage(const CDomoticzHardwareBase* pHardware, const tRBU
 	std::string ID = szTmp;
 	uint8_t Unit = pMeter->dunit;
 	uint8_t cmnd = 0;
-	uint8_t SignalLevel = 12;
+	uint8_t SignalLevel = pMeter->rssi;
 	uint8_t BatteryLevel = 255;
 
 	sprintf(szTmp, "%.1f", pMeter->fusage);
@@ -10052,12 +10074,14 @@ void MainWorker::decode_Thermostat(const CDomoticzHardwareBase* pHardware, const
 	procResult.DeviceRowIdx = DevRowIdx;
 }
 
-void MainWorker::decode_General(const CDomoticzHardwareBase* pHardware, const tRBUF* pResponse, _tRxMessageProcessingResult& procResult, const uint8_t SignalLevel, const uint8_t BatteryLevel)
+void MainWorker::decode_General(const CDomoticzHardwareBase* pHardware, const tRBUF* pResponse, _tRxMessageProcessingResult& procResult)
 {
 	char szTmp[200];
 	const _tGeneralDevice* pMeter = reinterpret_cast<const _tGeneralDevice*>(pResponse);
 	uint8_t devType = pMeter->type;
 	uint8_t subType = pMeter->subtype;
+	uint8_t SignalLevel = pMeter->rssi;
+	uint8_t BatteryLevel = pMeter->battery_level;
 
 	if (
 		(subType == sTypeVoltage) ||
@@ -10085,8 +10109,8 @@ void MainWorker::decode_General(const CDomoticzHardwareBase* pHardware, const tR
 	else
 	{
 		sprintf(szTmp, "%d", pMeter->id);
-
 	}
+
 	std::string ID = szTmp;
 	uint8_t Unit = 1;
 	uint8_t cmnd = 0;
@@ -11068,7 +11092,9 @@ void MainWorker::decode_Solar(const CDomoticzHardwareBase* pHardware, const tRBU
 	gdevice.intval1 = (pResponse->SOLAR.id1 * 256) + pResponse->SOLAR.id2;
 	gdevice.id = (uint8_t)gdevice.intval1;
 	gdevice.floatval1 = float((pResponse->SOLAR.solarhigh * 256) + float(pResponse->SOLAR.solarlow)) / 100.f;
-	decode_General(pHardware, pResponse, procResult, SignalLevel, BatteryLevel);
+	gdevice.rssi = SignalLevel;
+	gdevice.battery_level = BatteryLevel;
+	decode_General(pHardware, pResponse, procResult);
 	procResult.bProcessBatteryValue = false;
 }
 
@@ -11990,15 +12016,17 @@ bool MainWorker::SwitchLightInt(const std::vector<std::string>& sd, std::string 
 		lcmd.BLINDS1.id3 = ID3;
 		lcmd.BLINDS1.id4 = 0;
 		if (
-			(dSubType == sTypeBlindsT0) ||
-			(dSubType == sTypeBlindsT1) ||
-			(dSubType == sTypeBlindsT3) ||
-			(dSubType == sTypeBlindsT8) ||
-			(dSubType == sTypeBlindsT12) ||
-			(dSubType == sTypeBlindsT13) ||
-			(dSubType == sTypeBlindsT14) ||
-			(dSubType == sTypeBlindsT15) ||
-			(dSubType == sTypeBlindsT16)
+			(dSubType == sTypeBlindsT0)
+			|| (dSubType == sTypeBlindsT1)
+			|| (dSubType == sTypeBlindsT3)
+			|| (dSubType == sTypeBlindsT8)
+			|| (dSubType == sTypeBlindsT12)
+			|| (dSubType == sTypeBlindsT13)
+			|| (dSubType == sTypeBlindsT14)
+			|| (dSubType == sTypeBlindsT15)
+			|| (dSubType == sTypeBlindsT16)
+			|| (dSubType == sTypeBlindsT17)
+			|| (dSubType == sTypeBlindsT18)
 			)
 		{
 			lcmd.BLINDS1.unitcode = Unit;
@@ -12993,11 +13021,19 @@ bool MainWorker::SwitchScene(const uint64_t idx, std::string switchcmd, const st
 
 		if (scenetype == SGTYPE_GROUP)
 		{
+			std::vector<std::string> validCmdArray {"On", "Off", "Toggle", "Group On" , "Chime", "All On"};
+			if (std::find(validCmdArray.begin(), validCmdArray.end(), switchcmd) == validCmdArray.end())
+				return false;
 			//when asking for Toggle, just switch to the opposite value
 			if (switchcmd == "Toggle") {
 				nValue = (atoi(status.c_str()) == 0 ? 1 : 0);
 				switchcmd = (nValue == 1 ? "On" : "Off");
 			}
+		}
+		else
+		{
+			if (switchcmd != "On")
+				return false; //A Scene can only be turned On
 		}
 		m_sql.HandleOnOffAction((nValue == 1), onaction, offaction);
 	}

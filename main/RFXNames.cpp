@@ -53,10 +53,10 @@ const char* RFX_Humidity_Status_Desc(const unsigned char status)
 	static const STR_TABLE_SINGLE	Table[] =
 	{
 		{ humstat_normal, "Normal" },
-	{ humstat_comfort, "Comfortable" },
-	{ humstat_dry, "Dry" },
-	{ humstat_wet, "Wet" },
-	{ 0,NULL,NULL }
+		{ humstat_comfort, "Comfortable" },
+		{ humstat_dry, "Dry" },
+		{ humstat_wet, "Wet" },
+		{ 0,NULL,NULL }
 	};
 	return findTableIDSingle1(Table, status);
 }
@@ -280,6 +280,7 @@ static const STR_TABLE_SINGLE	HardwareTypeTable[] =
 	{ HTYPE_DenkoviUSBDevices, "Denkovi Modules with USB Interface",				"Denkovi" },
 	{ HTYPE_DenkoviTCPDevices, "Denkovi Modules with LAN (TCP) Interface",			"Denkovi" },
 	{ HTYPE_OctoPrint, "OctoPrint (MQTT/Gina Haussge) with LAN interface",			"OctoPrint" },
+	{ HTYPE_Meteorologisk, "Meteorologisk institutt Norway (Weather Lookup)",		"Meteorologisk" },
 	{ 0, NULL, NULL }
 };
 
@@ -590,6 +591,7 @@ const char* RFX_Type_SubType_Desc(const unsigned char dType, const unsigned char
 	{ pTypeRAIN, sTypeRAIN6, "LaCrosse TX5" },
 	{ pTypeRAIN, sTypeRAIN7, "Alecto" },
 	{ pTypeRAIN, sTypeRAIN8, "Davis" },
+	{ pTypeRAIN, sTypeRAIN9, "TFA 30.3233.01" },
 	{ pTypeRAIN, sTypeRAINWU, "WWW" },
 	{ pTypeRAIN, sTypeRAINByRate, "RainByRate" },
 
@@ -678,6 +680,8 @@ const char* RFX_Type_SubType_Desc(const unsigned char dType, const unsigned char
 	{ pTypeBlinds, sTypeBlindsT14, "Hualite" },
 	{ pTypeBlinds, sTypeBlindsT15, "RFU" },
 	{ pTypeBlinds, sTypeBlindsT16, "Zemismart" },
+	{ pTypeBlinds, sTypeBlindsT17, "Gaposa" },
+	{ pTypeBlinds, sTypeBlindsT18, "Cherubini" },
 
 	{ pTypeSecurity1, sTypeSecX10, "X10 security" },
 	{ pTypeSecurity1, sTypeSecX10M, "X10 security motion" },
@@ -804,6 +808,8 @@ const char* RFX_Type_SubType_Desc(const unsigned char dType, const unsigned char
 	{ pTypeFan, sTypeFT1211R, "FT1211R" },
 	{ pTypeFan, sTypeFalmec, "Falmec" },
 	{ pTypeFan, sTypeLucciAirDCII, "Lucci Air DC II" },
+	{ pTypeFan, sTypeIthoECO, "Itho ECO" },
+	{ pTypeFan, sTypeNovy, "Novy" },
 
 	{ pTypeTEMP_RAIN, sTypeTR1, "Alecto WS1200" },
 
@@ -1191,6 +1197,9 @@ void GetLightStatus(
 					lstatus = szTmp;
 				else
 					lstatus = "Off";
+				break;
+			case gswitch_sStop:
+				lstatus = "Stop";
 				break;
 			}
 			break;
@@ -2008,7 +2017,13 @@ void GetLightStatus(
 			lstatus = "Off";
 			break;
 		case light1_sOn:
-			lstatus = "On";
+			sprintf(szTmp, "Set Level: %d %%", llevel);
+			if (llevel == 100) {
+				lstatus = "On";
+			}
+			else {
+				lstatus = szTmp;
+			}
 			break;
 		}
 		break;

@@ -249,10 +249,10 @@ define(['app', 'livesocket'], function (app) {
 						}
 						else if (item.SwitchType == "Contact") {
 							if (item.Status == 'Closed') {
-								status = '<a class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("Closed") + '</a>';
+								status = '<button class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("Closed") + '</button>';
 							}
 							else {
-								status = '<a class="btn btn-mini btn-info" href="#/Devices/' + item.idx + '/Log">' + $.t("Open") + '</a>';
+								status = '<button class="btn btn-mini btn-info" href="#/Devices/' + item.idx + '/Log">' + $.t("Open") + '</button>';
 							}
 						}
 						else if ((item.SwitchType == "Blinds") || (item.SwitchType.indexOf("Venetian Blinds") == 0)) {
@@ -404,10 +404,10 @@ define(['app', 'livesocket'], function (app) {
 						}
 						else if (item.SwitchType == "Dusk Sensor") {
 							if (item.Status == 'On') {
-								status = '<a class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("Dark") + '</a>';
+								status = '<button class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("Dark") + '</button>';
 							}
 							else {
-								status = '<a class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("Sunny") + '</a>';
+								status = '<button class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("Sunny") + '</button>';
 							}
 						}
 						else if (item.SwitchType == "Motion Sensor") {
@@ -417,18 +417,18 @@ define(['app', 'livesocket'], function (app) {
 								(item.Status == 'Group On') ||
 								(item.Status.indexOf('Set ') == 0)
 							) {
-								status = '<a class="btn btn-mini btn-info" href="#/Devices/' + item.idx + '/Log">' + $.t("Motion") + '</a>';
+								status = '<button class="btn btn-mini btn-info" href="#/Devices/' + item.idx + '/Log">' + $.t("Motion") + '</button>';
 							}
 							else {
-								status = '<a class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("No Motion") + '</a>';
+								status = '<button class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("No Motion") + '</button>';
 							}
 						}
 						else if (item.SwitchType == "Smoke Detector") {
 							if ((item.Status == "Panic") || (item.Status == "On")) {
-								status = '<a class="btn btn-mini btn-info" href="#/Devices/' + item.idx + '/Log">' + $.t("SMOKE") + '</a>';
+								status = '<button class="btn btn-mini btn-info" href="#/Devices/' + item.idx + '/Log">' + $.t("SMOKE") + '</button>';
 							}
 							else {
-								status = '<a class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("No Smoke") + '</a>';
+								status = '<button class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("No Smoke") + '</button>';
 							}
 						}
 						else if (item.SwitchType == "Selector") {
@@ -760,7 +760,7 @@ define(['app', 'livesocket'], function (app) {
 							var RO = (item.Unit < 64 || item.Unit > 95) ? true : false;
 							isdimmer = true;
 							if (
-								(item.Status == 'On')
+								(item.Status != 'Off')
 							) {
 								img = '<img src="images/Fireplace48_On.png" title="' + $.t(RO ? "On" : "Turn Off") + (RO ? '"' : '" onclick="SwitchLight(' + item.idx + ',\'Off\',' + item.Protected + ');" class="lcursor"') + ' height="40" width="40">';
 								$(id + " #div.item").removeClass('Off-fireplace').addClass('on-fireplace');
@@ -1974,7 +1974,7 @@ define(['app', 'livesocket'], function (app) {
 									}
 									else if (item.SwitchType == "Contact") {
 										if (item.Status == 'Closed') {
-											status = '<a class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("Closed") + '</a>';
+											status = '<button class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("Closed") + '</button>';
 										}
 										else {
 											status = '<a class="btn btn-mini btn-info" href="#/Devices/' + item.idx + '/Log">' + $.t("Open") + '</button>';
@@ -2124,7 +2124,7 @@ define(['app', 'livesocket'], function (app) {
 										}
 									}
 									else if (item.SwitchType == "Dusk Sensor") {
-										status = '<a class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t(item.Status == 'On' ? "Dark": "Sunny") + '</a>';
+										status = '<button class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t(item.Status == 'On' ? "Dark": "Sunny") + '</button>';
 									}
 									else if (item.SwitchType == "Motion Sensor") {
 										if (
@@ -2133,10 +2133,10 @@ define(['app', 'livesocket'], function (app) {
 											(item.Status == 'Group On') ||
 											(item.Status.indexOf('Set ') == 0)
 										) {
-											status = '<a class="btn btn-mini btn-info" href="#/Devices/' + item.idx + '/Log">' + $.t("Motion") + '</a>';
+											status = '<button class="btn btn-mini btn-info" href="#/Devices/' + item.idx + '/Log">' + $.t("Motion") + '</button>';
 										}
 										else {
-											status = '<a class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("No Motion") + '</a>';
+											status = '<button class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("No Motion") + '</button>';
 										}
 									}
 									else if (item.SwitchType == "Smoke Detector") {
@@ -2144,10 +2144,10 @@ define(['app', 'livesocket'], function (app) {
 											(item.Status == "Panic") ||
 											(item.Status == "On")
 										) {
-											status = '<a class="btn btn-mini  btn-info" href="#/Devices/' + item.idx + '/Log">' + $.t("SMOKE") + '</a>';
+											status = '<button class="btn btn-mini  btn-info" href="#/Devices/' + item.idx + '/Log">' + $.t("SMOKE") + '</button>';
 										}
 										else {
-											status = '<a class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("No Smoke") + '</a>';
+											status = '<button class="btn btn-mini" href="#/Devices/' + item.idx + '/Log">' + $.t("No Smoke") + '</button>';
 										}
 									}
 									else if (item.SwitchType == "Selector") {
@@ -2563,7 +2563,7 @@ define(['app', 'livesocket'], function (app) {
 									}
 									else if (item.SwitchType == "TPI") {
 										var RO = (item.Unit < 64 || item.Unit > 95) ? true : false;
-										if (item.Status == 'On') {
+										if (item.Status != 'Off') {
 											xhtm += '\t      <td id="img" class="img img1"><img src="images/Fireplace48_On.png" title="' + $.t(RO ? "On" : "Turn Off") + (RO ? '"' : '" onclick="SwitchLight(' + item.idx + ',\'Off\',' + item.Protected + ');" class="lcursor"') + ' height="40" width="40"></td>\n';
 										}
 										else {

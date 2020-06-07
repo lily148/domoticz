@@ -18,14 +18,14 @@
 #include "../webserver/cWebem.h"
 #include "../main/mainworker.h"
 
-#include "../json/json.h"
+#include <json/json.h>
 #include "../main/localtime_r.h"
 
 //OpenZWave includes
-#include "openzwave/Options.h"
-#include "openzwave/Manager.h"
-#include "openzwave/platform/Log.h"
-#include "openzwave/ValueIDIndexesDefines.h"
+#include <Options.h>
+#include <Manager.h>
+#include <platform/Log.h>
+#include <ValueIDIndexesDefines.h>
 
 #include "ZWaveCommands.h"
 
@@ -828,6 +828,7 @@ void COpenZWave::OnZWaveNotification(OpenZWave::Notification const* _notificatio
 		break;
 	case OpenZWave::Notification::Type_UserAlerts:
 		_log.Log(LOG_STATUS, "OpenZWave: %s", _notification->GetAsString().c_str());
+		break;
 	default:
 		_log.Log(LOG_STATUS, "OpenZWave: Received unhandled notification type (%d) from HomeID: %u, NodeID: %d (0x%02x)", nType, _homeID, _nodeID, _nodeID);
 		_log.Log(LOG_STATUS, "OpenZWave: %s", _notification->GetAsString().c_str());
@@ -3625,10 +3626,9 @@ bool COpenZWave::NetworkInfo(const int hwID, std::vector< std::vector< int > >& 
 			std::vector<int> row;
 			NodeArray.push_back(row);
 			NodeArray[rowCnt].push_back(_nodeID);
-			uint8* arr;
-
 			try
 			{
+				uint8* arr;
 				int retval = m_pManager->GetNodeNeighbors(_homeID, _nodeID, &arr);
 				if (retval > 0) {
 
@@ -5769,6 +5769,7 @@ namespace http {
 					int MaxNoOfGroups = 0;
 					std::vector<std::vector<std::string> >::const_iterator itt;
 					int ii = 0;
+
 					for (itt = result.begin(); itt != result.end(); ++itt)
 					{
 						std::vector<std::string> sd = *itt;
@@ -5782,36 +5783,31 @@ namespace http {
 						root["result"]["nodes"][ii]["nodeID"] = nodeID;
 						root["result"]["nodes"][ii]["nodeName"] = (nodeName != "Unknown") ? nodeName : (pNode->Manufacturer_name + std::string(" ") + pNode->Product_name);
 						root["result"]["nodes"][ii]["groupCount"] = numGroups;
-						if (numGroups > 0) {
+						if (numGroups > 0)
+						{
 							if (numGroups > MaxNoOfGroups)
 								MaxNoOfGroups = numGroups;
 
-							std::vector< std::string > nodesingroup;
-							int gi = 0;
-							for (int x = 1; x <= numGroups; x++)
+							for (int iGroup = 0; iGroup < numGroups; iGroup++)
 							{
-								int numNodesInGroup = pOZWHardware->ListAssociatedNodesinGroup(nodeID, (uint8_t)x, nodesingroup);
+								root["result"]["nodes"][ii]["groups"][iGroup]["id"] = iGroup + 1;
+								root["result"]["nodes"][ii]["groups"][iGroup]["groupName"] = pOZWHardware->GetGroupName(nodeID, (uint8_t)iGroup + 1);
+
+								std::vector< std::string > nodesingroup;
+								int numNodesInGroup = pOZWHardware->ListAssociatedNodesinGroup(nodeID, (uint8_t)iGroup + 1, nodesingroup);
 								if (numNodesInGroup > 0) {
 									std::stringstream list;
 									std::copy(nodesingroup.begin(), nodesingroup.end(), std::ostream_iterator<std::string>(list, ","));
-									root["result"]["nodes"][ii]["groups"][gi]["id"] = x;
-									root["result"]["nodes"][ii]["groups"][gi]["groupName"] = pOZWHardware->GetGroupName(nodeID, (uint8_t)x);
-									root["result"]["nodes"][ii]["groups"][gi]["nodes"] = list.str();
+									root["result"]["nodes"][ii]["groups"][iGroup]["nodes"] = list.str();
 								}
 								else {
-									root["result"]["nodes"][ii]["groups"][gi]["id"] = x;
-									root["result"]["nodes"][ii]["groups"][gi]["groupName"] = pOZWHardware->GetGroupName(nodeID, (uint8_t)x);
-									root["result"]["nodes"][ii]["groups"][gi]["nodes"] = "";
+									root["result"]["nodes"][ii]["groups"][iGroup]["nodes"] = "";
 								}
-								gi++;
-								nodesingroup.clear();
 							}
-
 						}
 						ii++;
 					}
 					root["result"]["MaxNoOfGroups"] = MaxNoOfGroups;
-
 				}
 			}
 			root["status"] = "OK";

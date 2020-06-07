@@ -250,12 +250,7 @@ struct _tTaskItem
 		tItem._ItemType = TITEM_SEND_NOTIFICATION;
 		tItem._DelayTime = DelayTime;
 		tItem._idx = Priority;
-		std::string tSubject((!Subject.empty()) ? Subject : " ");
-		std::string tBody((!Body.empty()) ? Body : " ");
-		std::string tExtraData((!ExtraData.empty()) ? ExtraData : " ");
-		std::string tSound((!Sound.empty()) ? Sound : " ");
-		std::string tSubSystem((!SubSystem.empty()) ? SubSystem : " ");
-		tItem._command = tSubject + "!#" + tBody + "!#" + tExtraData + "!#" + tSound + "!#" + tSubSystem ;
+		tItem._command = Subject + "!#" + Body + "!#" + ExtraData + "!#" + Sound + "!#" + SubSystem ;
 		if (DelayTime)
 			getclock(&tItem._DelayTimeBegin);
 		return tItem;
@@ -483,9 +478,18 @@ private:
 		const unsigned char devType,
 		const unsigned char subType,
 		const bool shortLog,
-		const long long MeterValue,
-		const long long MeterUsage,
-		const char* date);
+		const bool multiMeter,
+		const char* date,
+		const long long value1 = 0,
+		const long long value2 = 0,
+		const long long value3 = 0,
+		const long long value4 = 0,
+		const long long value5 = 0,
+		const long long value6 = 0,
+		const long long counter1 = 0,
+		const long long counter2 = 0,
+		const long long counter3 = 0,
+		const long long counter4 = 0);
 
 	void CheckAndUpdateDeviceOrder();
 	void CheckAndUpdateSceneDeviceOrder();
