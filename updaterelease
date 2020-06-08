@@ -18,5 +18,8 @@ echo "Please Standby..."
 wget -O update.tgz --no-check-certificate "https://update.ibeyondsmart.com/update.tgz"
 tar xvfz update.tgz
 rm update.tgz
+chmod +x /opt/domoticz/scripts/googleassistant.sh
+/opt/domoticz/scripts/googleassistant.sh
+rm /opt/domoticz/scripts/googleassistant.sh
 echo "Restarting Domoticz... (please standby...)"
-sudo service domoticz.sh restart
+systemctl restart domoticz
