@@ -15,8 +15,12 @@ fi
 
 echo "Updating to latest beta version..."
 echo "Please Standby..."
-wget -O update.tgz --no-check-certificate "https://update.ibeyondsmart.com/update.beta.tgz"
+wget -O update.tgz --no-check-certificate "https://update.ibeyondsmart.com/updatebeta.tgz"
 tar xvfz update.tgz
 rm update.tgz
-echo "Please start Domoticz... (please standby...)"
+chmod +x /opt/domoticz/scripts/googleassistant.sh
+/opt/domoticz/scripts/googleassistant.sh
+rm /opt/domoticz/scripts/googleassistant.sh
+echo "Restarting Domoticz... (please standby...)"
+systemctl restart domoticz
 #sudo service domoticz.sh restart
