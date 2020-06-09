@@ -93,7 +93,7 @@ define(['app'], function (app) {
 					if (data.status == "OK") {
 						$scope.mytimer = $interval(function () {
 							$scope.progressupdatesystem();
-						}, 600);
+						}, 2600);
 						$scope.mytimer2 = $interval(function () {
 							$scope.CheckUpdateReader();
 						}, 1000);
@@ -119,7 +119,7 @@ define(['app'], function (app) {
 						$scope.topText = $.t("Update Available... Downloading Update !...");
 						$scope.mytimer = $interval(function () {
 							$scope.StartUpdate();
-						}, 400);
+						}, 1400);
 					} else {
 						$scope.topText = $.t("No Update Available !...");
 					}
