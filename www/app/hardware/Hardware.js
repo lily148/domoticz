@@ -791,7 +791,7 @@ define(['app'], function (app) {
 					}
 				});
 			}
-			else if ((text.indexOf("Underground") >= 0) || (text.indexOf("DarkSky") >= 0) || (text.indexOf("AccuWeather") >= 0) || (text.indexOf("Open Weather Map") >= 0)) {
+			else if ((text.indexOf("Underground") >= 0) || (text.indexOf("DarkSky") >= 0) || (text.indexOf("AccuWeather") >= 0)) {
 				var apikey = $("#hardwarecontent #divunderground #apikey").val();
 				if (apikey == "") {
 					ShowNotify($.t('Please enter an API Key!'), 2500, true);
@@ -831,6 +831,38 @@ define(['app'], function (app) {
 					"&idx=" + idx +
 					"&datatimeout=" + datatimeout +
 					"&Mode1=" + Mode1 + "&Mode2=" + Mode2 + "&Mode3=" + Mode3 + "&Mode4=" + Mode4 + "&Mode5=" + Mode5 + "&Mode6=" + Mode6,
+					async: false,
+					dataType: 'json',
+					success: function (data) {
+						RefreshHardwareTable();
+					},
+					error: function () {
+						ShowNotify($.t('Problem updating hardware!'), 2500, true);
+					}
+				});
+			}
+			else if(text.indexOf("Open Weather Map") >= 0){
+				var apikey = $("#hardwarecontent #divopenweathermap #apikey").val();
+				if (apikey == "") {
+					ShowNotify($.t('Please enter an API Key!'), 2500, true);
+					return;
+				}
+				var location = $("#hardwarecontent #divopenweathermap #location").val();
+				if (location == "") {
+					ShowNotify($.t('Please enter an Location (or 0 to use Domoticz home location)!'), 2500, true);
+					return;
+				}
+				var adddayforecast = $("#hardwarecontent #divopenweathermap #adddayforecast").prop("checked") ? 1 : 0;
+				var addhourforecast = $("#hardwarecontent #divopenweathermap #addhourforecast").prop("checked") ? 1 : 0;
+				$.ajax({
+					url: "json.htm?type=command&param=updatehardware&htype=" + hardwaretype +
+					"&username=" + encodeURIComponent(apikey) +
+					"&password=" + encodeURIComponent(location) +
+					"&name=" + encodeURIComponent(name) +
+					"&enabled=" + bEnabled +
+					"&idx=" + idx +
+					"&datatimeout=" + datatimeout +
+					"&Mode1=" + adddayforecast + "&Mode2=" + addhourforecast + "&Mode3=" + Mode3 + "&Mode4=" + Mode4 + "&Mode5=" + Mode5 + "&Mode6=" + Mode6,
 					async: false,
 					dataType: 'json',
 					success: function (data) {
@@ -984,6 +1016,41 @@ define(['app'], function (app) {
 					defaultinterval = 20;
 				}
 				var allowwakeup = $("#hardwarecontent #divtesla #comboallowwakeup").val();
+				$.ajax({
+					url: "json.htm?type=command&param=updatehardware&htype=" + hardwaretype +
+					"&username=" + encodeURIComponent(username) +
+					"&password=" + encodeURIComponent(password) +
+					"&name=" + encodeURIComponent(name) +
+					"&enabled=" + bEnabled +
+					"&idx=" + idx +
+					"&datatimeout=" + datatimeout +
+					"&extra=" + vinnr +
+					"&Mode1=" + defaultinterval +
+					"&Mode2=" + activeinterval + 
+					"&Mode3=" + allowwakeup,
+					async: false,
+					dataType: 'json',
+					success: function (data) {
+						RefreshHardwareTable();
+					},
+					error: function () {
+						ShowNotify($.t('Problem updating hardware!'), 2500, true);
+					}
+				});
+			}
+			else if (text.indexOf("Mercedes") >= 0) {
+				var username = $("#hardwarecontent #divlogin #username").val();
+				var password = encodeURIComponent($("#hardwarecontent #divlogin #password").val());
+				var vinnr = $("#hardwarecontent #divmercedes #vinnr").val();
+				var activeinterval = parseInt($("#hardwarecontent #divmercedes #activeinterval").val());
+				if (activeinterval < 1) {
+					activeinterval = 1;
+				}
+				var defaultinterval = parseInt($("#hardwarecontent #divmercedes #defaultinterval").val());
+				if (defaultinterval < 1) {
+					defaultinterval = 20;
+				}
+				var allowwakeup = $("#hardwarecontent #divmercedes #comboallowwakeup").val();
 				$.ajax({
 					url: "json.htm?type=command&param=updatehardware&htype=" + hardwaretype +
 					"&username=" + encodeURIComponent(username) +
@@ -2017,8 +2084,7 @@ define(['app'], function (app) {
 			else if (
 					(text.indexOf("Underground") >= 0) ||
 					(text.indexOf("DarkSky") >= 0) ||
-					(text.indexOf("AccuWeather") >= 0) ||
-					(text.indexOf("Open Weather Map") >= 0)
+					(text.indexOf("AccuWeather") >= 0)
 					) {
 				var apikey = $("#hardwarecontent #divunderground #apikey").val();
 				if (apikey == "") {
@@ -2041,7 +2107,8 @@ define(['app'], function (app) {
 						ShowNotify($.t('Problem adding hardware!'), 2500, true);
 					}
 				});
-			}else if(text.indexOf("Meteorologisk") >= 0){
+			}
+			else if(text.indexOf("Meteorologisk") >= 0){
 				var location = $("#hardwarecontent #divlocation #location").val();
 				$.ajax({
 					url: "json.htm?type=command&param=addhardware&htype=" + hardwaretype + "&password=" + encodeURIComponent(location) + "&name=" + encodeURIComponent(name) + "&enabled=" + bEnabled + "&datatimeout=" + datatimeout,
@@ -2055,7 +2122,35 @@ define(['app'], function (app) {
 					}
 				});
 			}
-			else if (text.indexOf("Buienradar") >= 0) {
+			else if (text.indexOf("Open Weather Map") >= 0) {
+			var apikey = $("#hardwarecontent #divopenweathermap #apikey").val();
+			if (apikey == "") {
+				ShowNotify($.t('Please enter an API Key!'), 2500, true);
+				return;
+			}
+			var location = $("#hardwarecontent #divopenweathermap #location").val();
+			if (location == "") {
+				ShowNotify($.t('Please enter an Location (or 0 to use Domoticz own location)!'), 2500, true);
+				return;
+			}
+			var adddayforecast = $("#hardwarecontent #divopenweathermap #adddayforecast").prop("checked") ? 1 : 0;
+			var addhourforecast = $("#hardwarecontent #divopenweathermap #addhourforecast").prop("checked") ? 1 : 0;
+			$.ajax({
+				url: "json.htm?type=command&param=addhardware&htype=" + hardwaretype + 
+				"&username=" + encodeURIComponent(apikey) + "&password=" + encodeURIComponent(location) + 
+				"&name=" + encodeURIComponent(name) + "&enabled=" + bEnabled + "&datatimeout=" + datatimeout +
+				"&Mode1=" + adddayforecast + "&Mode2=" + addhourforecast,
+				async: false,
+				dataType: 'json',
+				success: function (data) {
+					RefreshHardwareTable();
+				},
+				error: function () {
+					ShowNotify($.t('Problem adding hardware!'), 2500, true);
+				}
+			});
+		}
+		else if (text.indexOf("Buienradar") >= 0) {
 				var timeframe = $("#hardwarecontent #divbuienradar #timeframe").val();
 				if (timeframe == 0) {
 					timeframe = 30;
@@ -2286,6 +2381,40 @@ define(['app'], function (app) {
 					defaultinterval = 20;
 				}
 				var allowwakeup = $("#hardwarecontent #divtesla #comboallowwakeup").val();
+				$.ajax({
+					url: "json.htm?type=command&param=addhardware&htype=" + hardwaretype +
+					"&username=" + encodeURIComponent(username) +
+					"&password=" + encodeURIComponent(password) +
+					"&name=" + encodeURIComponent(name) +
+					"&enabled=" + bEnabled +
+					"&datatimeout=" + datatimeout +
+					"&extra=" + vinnr +
+					"&Mode1=" + defaultinterval +
+					"&Mode2=" + activeinterval +
+					"&Mode3=" + allowwakeup,
+					async: false,
+					dataType: 'json',
+					success: function (data) {
+						RefreshHardwareTable();
+					},
+					error: function () {
+						ShowNotify($.t('Problem adding hardware!'), 2500, true);
+					}
+				});
+			}
+			else if (text.indexOf("Mercedes") >= 0) {
+				var username = $("#hardwarecontent #divlogin #username").val();
+				var password = encodeURIComponent($("#hardwarecontent #divlogin #password").val());
+				var vinnr = encodeURIComponent($("#hardwarecontent #divmercedes #vinnr").val());
+				var activeinterval = parseInt($("#hardwarecontent #divmercedes #activeinterval").val());
+				if (activeinterval < 1) {
+					activeinterval = 1;
+				}
+				var defaultinterval = parseInt($("#hardwarecontent #divmercedes #defaultinterval").val());
+				if (defaultinterval < 1) {
+					defaultinterval = 20;
+				}
+				var allowwakeup = $("#hardwarecontent #divmercedes #comboallowwakeup").val();
 				$.ajax({
 					url: "json.htm?type=command&param=addhardware&htype=" + hardwaretype +
 					"&username=" + encodeURIComponent(username) +
@@ -3755,12 +3884,18 @@ define(['app'], function (app) {
 								}
 							}
 						}
-						else if ((data["Type"].indexOf("Underground") >= 0) || (data["Type"].indexOf("DarkSky") >= 0) || (data["Type"].indexOf("AccuWeather") >= 0) || (data["Type"].indexOf("Open Weather Map") >= 0)) {
+						else if ((data["Type"].indexOf("Underground") >= 0) || (data["Type"].indexOf("DarkSky") >= 0) || (data["Type"].indexOf("AccuWeather") >= 0)) {
 							$("#hardwarecontent #hardwareparamsunderground #apikey").val(data["Username"]);
 							$("#hardwarecontent #hardwareparamsunderground #location").val(data["Password"]);
 						}
 						else if ((data["Type"].indexOf("Meteorologisk") >= 0)) {
 							$("#hardwarecontent #hardwareparamslocation #location").val(data["Password"]);
+						}
+						else if (data["Type"].indexOf("Open Weather Map") >= 0) {
+							$("#hardwarecontent #hardwareparamsopenweathermap #apikey").val(data["Username"]);
+							$("#hardwarecontent #hardwareparamsopenweathermap #location").val(data["Password"]);
+							$("#hardwarecontent #hardwareparamsopenweathermap #adddayforecast").prop("checked", data["Mode1"] == 1);
+							$("#hardwarecontent #hardwareparamsopenweathermap #addhourforecast").prop("checked", data["Mode2"] == 1);
 						}
 						else if (data["Type"].indexOf("Buienradar") >= 0) {
 							var timeframe = parseInt(data["Mode1"]);
@@ -3819,6 +3954,12 @@ define(['app'], function (app) {
 							$("#hardwarecontent #hardwareparamstesla #defaultinterval").val(data["Mode1"]);
 							$("#hardwarecontent #hardwareparamstesla #activeinterval").val(data["Mode2"]);
 							$("#hardwarecontent #hardwareparamstesla #comboallowwakeup").val(data["Mode3"]);
+						}
+						else if (data["Type"].indexOf("Mercedes") >= 0) {
+							$("#hardwarecontent #hardwareparamsmercedes #vinnr").val(data["Extra"]);
+							$("#hardwarecontent #hardwareparamsmercedes #defaultinterval").val(data["Mode1"]);
+							$("#hardwarecontent #hardwareparamsmercedes #activeinterval").val(data["Mode2"]);
+							$("#hardwarecontent #hardwareparamsmercedes #comboallowwakeup").val(data["Mode3"]);
 						}
 						else if (data["Type"].indexOf("Satel Integra") >= 0) {
 							$("#hardwarecontent #hardwareparamspollinterval #pollinterval").val(data["Mode1"]);
@@ -3924,6 +4065,7 @@ define(['app'], function (app) {
 							(data["Type"].indexOf("Thermosmart") >= 0) ||
                             (data["Type"].indexOf("Tado") >= 0) ||
                             (data["Type"].indexOf("Tesla") >= 0) ||
+                            (data["Type"].indexOf("Mercedes") >= 0) ||
 							(data["Type"].indexOf("Logitech Media Server") >= 0) ||
 							(data["Type"].indexOf("HEOS by DENON") >= 0) ||
 							(data["Type"].indexOf("Razberry") >= 0) ||
@@ -4083,6 +4225,7 @@ define(['app'], function (app) {
 			$("#hardwarecontent #divnestoauthapi").hide();
 			$("#hardwarecontent #divenecotoon").hide();
 			$("#hardwarecontent #divtesla").hide();
+			$("#hardwarecontent #divmercedes").hide();
 			$("#hardwarecontent #div1wire").hide();
 			$("#hardwarecontent #divgoodweweb").hide();
 			$("#hardwarecontent #divi2clocal").hide();
@@ -4097,6 +4240,7 @@ define(['app'], function (app) {
             $("#hardwarecontent #divmodeldenkoviusbdevices").hide();
             $("#hardwarecontent #divmodeldenkovitcpdevices").hide();
 			$("#hardwarecontent #divunderground").hide();
+			$("#hardwarecontent #divopenweathermap").hide();
 			$("#hardwarecontent #divbuienradar").hide();
 			$("#hardwarecontent #divserial").hide();
 			$("#hardwarecontent #divremote").hide();
@@ -4264,6 +4408,10 @@ define(['app'], function (app) {
 				$("#hardwarecontent #divlogin").show();
 				$("#hardwarecontent #divtesla").show();
 			}
+			else if (text.indexOf("Mercedes") >= 0) {
+				$("#hardwarecontent #divlogin").show();
+				$("#hardwarecontent #divmercedes").show();
+			}
 			else if (text.indexOf("SBFSpot") >= 0) {
 				$("#hardwarecontent #divlocation").show();
 			}
@@ -4292,11 +4440,14 @@ define(['app'], function (app) {
 					$("#hardwarecontent #hardwareparamshttp #divpostdatatextarea").show();
 				}
 			}
-			else if ((text.indexOf("Underground") >= 0) || (text.indexOf("DarkSky") >= 0) || (text.indexOf("AccuWeather") >= 0) || (text.indexOf("Open Weather Map") >= 0)) {
+			else if ((text.indexOf("Underground") >= 0) || (text.indexOf("DarkSky") >= 0) || (text.indexOf("AccuWeather") >= 0)) {
 				$("#hardwarecontent #divunderground").show();
 			}
 			else if(text.indexOf("Meteorologisk") >= 0){
 				$("#hardwarecontent #divlocation").show();
+			}
+			else if(text.indexOf("Open Weather Map") >= 0){
+				$("#hardwarecontent #divopenweathermap").show();
 			}
 			else if (text.indexOf("Buienradar") >= 0) {
 				$("#hardwarecontent #divbuienradar").show();
