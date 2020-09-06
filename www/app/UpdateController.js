@@ -68,7 +68,8 @@ define(['app'], function (app) {
 				}
 				if ($scope.updateReady == false) {
 					$("#updatecontent #divprogress").hide();
-					$scope.topText = $.t("Error while downloading Update,<br>check your internet connection or try again later !...");
+					//$scope.topText = $.t("Error while downloading Update,<br>check your internet connection or try again later !...");
+					$scope.topText = $.t("Update completed!<br>The gateway will not restart all services. It will take up to 10mins. Please DO NOT POWER OFF your gateway until you are able to access the dashboard again.");
 				} else {
 					$window.location = '/#Dashboard';
 					$window.location.reload();
