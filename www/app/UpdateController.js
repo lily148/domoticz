@@ -22,7 +22,7 @@ define(['app'], function (app) {
 			$http({
 				method : "GET",
 				url : "json.htm?type=command&param=getversion",
-				timeout: 5000
+				timeout: 15000
 			}).then(
 				function mySuccess(response) {
 					var data = response.data;
@@ -69,7 +69,7 @@ define(['app'], function (app) {
 				if ($scope.updateReady == false) {
 					$("#updatecontent #divprogress").hide();
 					//$scope.topText = $.t("Error while downloading Update,<br>check your internet connection or try again later !...");
-					$scope.topText = $.t("Update completed!<br>The gateway will not restart all services. It will take up to 10mins. Please DO NOT POWER OFF your gateway until you are able to access the dashboard again.");
+					$scope.topText = $.t("Update completed!<br>The gateway will now restart all services. It will take up to 10mins. Please DO NOT POWER OFF your gateway until you are able to access the dashboard again.");
 				} else {
 					$window.location = '/#Dashboard';
 					$window.location.reload();
@@ -94,10 +94,10 @@ define(['app'], function (app) {
 					if (data.status == "OK") {
 						$scope.mytimer = $interval(function () {
 							$scope.progressupdatesystem();
-						}, 2600);
+						}, 5600);
 						$scope.mytimer2 = $interval(function () {
 							$scope.CheckUpdateReader();
-						}, 1000);
+						}, 3000);
 					} else {
 						$scope.topText = $.t("Could not start download,<br>check your internet connection or try again later !...");
 					}
@@ -120,7 +120,7 @@ define(['app'], function (app) {
 						$scope.topText = $.t("Update Available... Downloading Update !...");
 						$scope.mytimer = $interval(function () {
 							$scope.StartUpdate();
-						}, 1400);
+						}, 3400);
 					} else {
 						$scope.topText = $.t("No Update Available !...");
 					}
