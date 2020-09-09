@@ -31,7 +31,7 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-#define DB_VERSION 145
+#define DB_VERSION 143
 
 extern http::server::CWebServerHelper m_webservers;
 extern std::string szWWWFolder;
@@ -90,7 +90,7 @@ const char* sqlCreateSceneLog =
 
 const char* sqlCreatePreferences =
 "CREATE TABLE IF NOT EXISTS [Preferences] ("
-"[Key] VARCHAR(50) PRIMARY KEY, "
+"[Key] VARCHAR(50) NOT NULL, "
 "[nValue] INTEGER DEFAULT 0, "
 "[sValue] VARCHAR(200));";
 
@@ -2572,7 +2572,7 @@ bool CSQLHelper::OpenDatabase()
 			//OpenZWave COMMAND_CLASS_METER new index, need to delete the cache!
 			std::vector<std::string> root_files_;
 			DirectoryListing(root_files_, szUserDataFolder + "Config", false, true);
-			for (const auto& itt : root_files_)
+			for (auto itt : root_files_)
 			{
 				if (itt.find("ozwcache_0x") != std::string::npos)
 				{
@@ -2710,7 +2710,7 @@ bool CSQLHelper::OpenDatabase()
 			dbToMigrate.push_back(_tPushHelper("GooglePubSubLink", CBasePush::PushType::PUSHTYPE_GOOGLE_PUB_SUB));
 			dbToMigrate.push_back(_tPushHelper("FibaroLink", CBasePush::PushType::PUSHTYPE_FIBARO));
 
-			for (const auto& itt : dbToMigrate)
+			for (auto itt : dbToMigrate)
 			{
 				safe_query(
 					"INSERT INTO PushLink (PushType, DeviceID, DelimitedValue, TargetType, TargetVariable, TargetDeviceID, TargetProperty, Enabled, IncludeUnit) "
@@ -2757,69 +2757,6 @@ bool CSQLHelper::OpenDatabase()
 			int iEnabled = 0;
 			if (!GetPreferencesVar("GCMEnabled", iEnabled))
 				UpdatePreferencesVar("FCMEnabled", iEnabled);
-		}
-		if (dbversion < 144)
-		{
-			//Make key in preferences primary key
-			safe_query("ALTER TABLE Preferences RENAME to Preferences_without_primary_key");
-			safe_query("DELETE from Preferences_without_primary_key WHERE Rowid NOT IN (SELECT MIN(rowid) FROM Preferences_without_primary_key GROUP BY Key)");
-			safe_query("CREATE TABLE [Preferences] ([Key] VARCHAR(50) PRIMARY KEY, [nValue] INTEGER DEFAULT 0, [sValue] VARCHAR(200))");
-			safe_query("INSERT INTO Preferences SELECT * from Preferences_without_primary_key");
-			safe_query("DROP TABLE Preferences_without_primary_key;");
-		}
-		if (dbversion < 145)
-		{
-			// Patch for OpenWebNetTCP: update deviceID for Area devices
-			std::stringstream szQuery;
-			std::vector<std::vector<std::string> > result, result2;
-			std::vector<std::string> sd;
-			szQuery << "SELECT ID FROM Hardware WHERE([Type]==" << HTYPE_OpenWebNetTCP << ")";
-			result = query(szQuery.str());
-			if (!result.empty())
-			{
-				for (const auto& itt : result)
-				{
-					sd = itt;
-
-					szQuery.clear();
-					szQuery.str("");
-					szQuery << "SELECT ID, DeviceID FROM DeviceStatus WHERE (HardwareID=" << sd[0] << ")";
-					result2 = query(szQuery.str());
-
-					if (!result2.empty())
-					{
-						for (const auto& itt2 : result2)
-						{
-							sd = itt2;
-
-							uint32_t NodeID = 0UL;
-							std::stringstream s_strid;
-							s_strid << std::hex << sd[1];
-							s_strid >> NodeID;
-							int who = (NodeID >> 16) & 0xffff;
-							int where = NodeID & 0xffff;
-							if (((who == 1) || (who == 2)) && (where < 1000))	// light or automation								
-							{
-								if ((where > 0) && (where < 10))			// < 10 mean area device
-									NodeID += 0x4000; // Area devices flag!
-								else if ((where > 99) && (where < 1000))	// need 4 chars
-									NodeID += 0x2000; // 4 chars devices flag!
-								if (NodeID & 0xF000)
-								{
-									char ndeviceid[10];
-									sprintf(ndeviceid, "%08X", NodeID);
-
-									_log.Log(LOG_STATUS, "COpenWebNetTCP: ID:%s, DeviceID change from %s to %s!", sd[0].c_str(), sd[1].c_str(), ndeviceid);
-									szQuery.clear();
-									szQuery.str("");
-									szQuery << "UPDATE DeviceStatus SET DeviceID='" << ndeviceid << "' WHERE (ID=" << sd[0] << ")";
-									query(szQuery.str());
-								}
-							}
-						}
-					}
-				}
-			}
 		}
 	}
 	else if (bNewInstall)
@@ -4204,13 +4141,10 @@ uint64_t CSQLHelper::UpdateValue(const int HardwareID, const char* ID, const uns
 			unsigned char ParentUnit = (unsigned char)atoi(sd[5].c_str());
 			m_mainworker.m_eventsystem.ProcessDevice(ParentHardwareID, ParentID, ParentUnit, ParentType, ParentSubType, signallevel, batterylevel, nValue, sValue, ParentName);
 
-			m_mainworker.sOnDeviceUpdate(std::stoi(sd[2]), std::stoll(sd[0]));
-
-
 			//Set the status of all slave devices from this device (except the one we just received) to off
 			//Check if this switch was a Sub/Slave device for other devices, if so adjust the state of those other devices
 			result2 = safe_query(
-				"SELECT a.DeviceRowID, b.Type, b.HardwareID FROM LightSubDevices a, DeviceStatus b WHERE (a.ParentID=='%q') AND (a.DeviceRowID!='%q') AND (b.ID == a.DeviceRowID) AND (a.DeviceRowID!=a.ParentID)",
+				"SELECT a.DeviceRowID, b.Type FROM LightSubDevices a, DeviceStatus b WHERE (a.ParentID=='%q') AND (a.DeviceRowID!='%q') AND (b.ID == a.DeviceRowID) AND (a.DeviceRowID!=a.ParentID)",
 				sd[0].c_str(),
 				idx.c_str()
 			);
@@ -4290,8 +4224,6 @@ uint64_t CSQLHelper::UpdateValue(const int HardwareID, const char* ID, const uns
 						ltime.tm_year + 1900, ltime.tm_mon + 1, ltime.tm_mday, ltime.tm_hour, ltime.tm_min, ltime.tm_sec,
 						sd[0].c_str()
 					);
-					m_mainworker.sOnDeviceUpdate(std::stoi(sd[2]), std::stoll(sd[0]));
-
 				}
 			}
 			// TODO: Should plugin be notified?
@@ -4301,7 +4233,7 @@ uint64_t CSQLHelper::UpdateValue(const int HardwareID, const char* ID, const uns
 	//If this is a 'Main' device, and it has Sub/Slave devices,
 	//set the status of the Sub/Slave devices to Off, as we might be out of sync then
 	result = safe_query(
-		"SELECT a.DeviceRowID, b.Type, b.HardwareID FROM LightSubDevices a, DeviceStatus b WHERE (a.ParentID=='%q') AND (b.ID == a.DeviceRowID) AND (a.DeviceRowID!=a.ParentID)",
+		"SELECT a.DeviceRowID, b.Type FROM LightSubDevices a, DeviceStatus b WHERE (a.ParentID=='%q') AND (b.ID == a.DeviceRowID) AND (a.DeviceRowID!=a.ParentID)",
 		idx.c_str()
 	);
 	if (!result.empty())
@@ -4381,7 +4313,6 @@ uint64_t CSQLHelper::UpdateValue(const int HardwareID, const char* ID, const uns
 				ltime.tm_year + 1900, ltime.tm_mon + 1, ltime.tm_mday, ltime.tm_hour, ltime.tm_min, ltime.tm_sec,
 				sd[0].c_str()
 			);
-			m_mainworker.sOnDeviceUpdate(std::stoi(sd[2]), std::stoll(sd[0]));
 		}
 		// TODO: Should plugin be notified?
 	}
@@ -4431,13 +4362,15 @@ uint64_t CSQLHelper::InsertDevice(const int HardwareID, const char* ID, const un
 	return ulID;
 }
 
-uint64_t CSQLHelper::GetDeviceIndex(const int HardwareID, const std::string& ID, const unsigned char unit, const unsigned char devType, const unsigned char subType, std::string& devname) {
+bool CSQLHelper::DoesDeviceExist(const int HardwareID, const char* ID, const unsigned char unit, const unsigned char devType, const unsigned char subType) {
 	std::vector<std::vector<std::string> > result;
-	result = safe_query("SELECT ID, Name FROM DeviceStatus WHERE (HardwareID=%d AND DeviceID='%q' AND Unit=%d AND Type=%d AND SubType=%d)", HardwareID, ID.c_str(), unit, devType, subType);
-	if (result.empty())
-		return -1;
-	devname = result[0].at(1);
-	return std::stoull(result[0].at(0));
+	result = safe_query("SELECT ID,Name FROM DeviceStatus WHERE (HardwareID=%d AND DeviceID='%q' AND Unit=%d AND Type=%d AND SubType=%d)", HardwareID, ID, unit, devType, subType);
+	if (result.empty()) {
+		return false;
+	}
+	else {
+		return true;
+	}
 }
 
 uint64_t CSQLHelper::UpdateValueInt(const int HardwareID, const char* ID, const unsigned char unit, const unsigned char devType, const unsigned char subType, const unsigned char signallevel, const unsigned char batterylevel, const int nValue, const char* sValue, std::string& devname, const bool bUseOnOffAction)
@@ -6558,12 +6491,12 @@ void CSQLHelper::AddCalendarUpdateMeter()
 			metertype = MTYPE_COUNTER;
 		}
 
+
 		result = safe_query("SELECT MIN(Value), MAX(Value), AVG(Value) FROM Meter WHERE (DeviceRowID='%" PRIu64 "' AND Date>='%q' AND Date<='%q 00:00:00')",
 			ID,
 			szDateStart,
 			szDateEnd
 		);
-
 		if (!result.empty())
 		{
 			std::vector<std::string> sd = result[0];
@@ -7766,28 +7699,16 @@ bool CSQLHelper::BackupDatabase(const std::string& OutputFile)
 
 	// Open the sqlite3_backup object used to accomplish the transfer
 	pBackup = sqlite3_backup_init(pFile, "main", m_dbase, "main");
-
-	time_t startTime = time(nullptr);
-
 	if (pBackup)
 	{
 		// Each iteration of this loop copies 5 database pages from database
 		// pDb to the backup database.
 		do {
-			rc = sqlite3_backup_step(pBackup, 256);
+			rc = sqlite3_backup_step(pBackup, 5);
 			//xProgress(  sqlite3_backup_remaining(pBackup), sqlite3_backup_pagecount(pBackup) );
-			if( rc==SQLITE_BUSY || rc==SQLITE_LOCKED ){
-			  sqlite3_sleep(250);
-			}
-			if (rc == SQLITE_BUSY || rc == SQLITE_LOCKED) {
-				time_t actTime = time(nullptr);
-				if (actTime - startTime > 2 * 60)
-				{
-					//Backup should be done in 2 minutes
-					_log.Log(LOG_ERROR, "SQLHelper: Problem making backup! Check destination folder/rights. Process timeout!");
-					break;
-				}
-			}
+			//if( rc==SQLITE_OK || rc==SQLITE_BUSY || rc==SQLITE_LOCKED ){
+			  //sqlite3_sleep(250);
+			//}
 		} while (rc == SQLITE_OK || rc == SQLITE_BUSY || rc == SQLITE_LOCKED);
 
 		/* Release resources allocated by backup_init(). */
@@ -9013,8 +8934,7 @@ float CSQLHelper::GetCounterDivider(const int metertype, const int dType, const 
 		else if ((dType == pTypeENERGY) || (dType == pTypePOWER))
 			divider *= 100.0f;
 
-		if (divider == 0)
-			divider = 1.0f;
+		if (divider == 0) divider = 1.0f;
 	}
 	return divider;
 }

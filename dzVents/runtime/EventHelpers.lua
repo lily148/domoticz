@@ -85,7 +85,7 @@ local function EventHelpers(domoticz, mainMethod)
 		if (storageDef ~= nil) then
 			-- load the datafile for this module
 			ok, fileStorage = pcall(require, module)
-			if type(fileStorage) == 'boolean' then
+			if type(fileStorage) == boolean then
 				utils.log('Problem with module: ' .. module, utils.LOG_ERROR)
 			end
 			package.loaded[module] = nil -- no caching
@@ -387,15 +387,6 @@ local function EventHelpers(domoticz, mainMethod)
 		for eventIdx, eventHandler in pairs(events) do
 
 			if (eventHandler.logging) then
-				if type(eventHandler.logging) ~= 'table' then
-					if type(eventHandler.logging) == 'number' then
-						local level = eventHandler.logging
-						eventHandler.logging = {}
-						eventHandler.logging.level = level
-					end
-					utils.log(eventHandler.type .. ' script ' .. eventHandler.name .. '.lua has a malformed logging section. Check the documentation.', utils.LOG_FORCE)
-				end
-
 				if (eventHandler.logging.level ~= nil) then
 					_G.logLevel = eventHandler.logging.level
 				end
@@ -656,12 +647,6 @@ local function EventHelpers(domoticz, mainMethod)
 				else
 					if (mode == 'timer' and j == 'timer') then
 						-- { ['timer'] = { 'every minute ', 'every hour' } }
-
-						if type(event) ~= 'table' then
-							utils.log(logScript .. module.name .. '.lua has a malformed timer-section. Check the documentation.', utils.LOG_FORCE)
-							event = { event }
-						end
-
 						local triggered, def = self.processTimeRules(event)
 						if (triggered) then
 							-- this one can be executed
@@ -1075,14 +1060,8 @@ local function EventHelpers(domoticz, mainMethod)
 			domoticz = self.domoticz
 		end
 
-		if (_G.notification == nil or _G.notification.customevent == nil ) then
+		if (_G.notification == nil) then
 			return
-		end
-
-		for _, row in ipairs(_G.notification.customevent) do
-			 if row.data.name:match('^___%a*__$') then
-				table.insert(self.domoticz.commandArray, { [ row.data.name:sub(4,-3) ] = row.data.data })
-			 end
 		end
 
 		local customEventScripts = self.getEventBindings('customEvents', nil)

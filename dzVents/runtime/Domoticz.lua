@@ -29,8 +29,8 @@ local function Domoticz(settings)
 
 	-- check if the user set a lat/lng
 	-- if not, then daytime, nighttime is incorrect
-	if not(globalvariables.locationSet) then
-		utils.log('No information about longitude / latitude available. Please set lat/lng information in settings.', utils.LOG_ERROR)
+	if (_G.timeofday['SunriseInMinutes'] == 0 and _G.timeofday['SunsetInMinutes'] == 0) then
+		utils.log('No information about sunrise and sunset available. Please set lat/lng information in settings.', utils.LOG_ERROR)
 	end
 
 	nowTime['isDayTime'] = timeofday['Daytime']
@@ -39,7 +39,6 @@ local function Domoticz(settings)
 	nowTime['isNightTime'] = timeofday['Nighttime']
 	nowTime['sunriseInMinutes'] = timeofday['SunriseInMinutes']
 	nowTime['sunsetInMinutes'] = timeofday['SunsetInMinutes']
-	nowTime['solarnoonInMinutes'] = timeofday['SunAtSouthInMinutes']
 	nowTime['civTwilightStartInMinutes'] = timeofday['CivTwilightStartInMinutes']
 	nowTime['civTwilightEndInMinutes'] = timeofday['CivTwilightEndInMinutes']
 
@@ -72,19 +71,16 @@ local function Domoticz(settings)
 	merge(self, constants)
 	merge(self.utils, utils)
 
-	-- add domoticz commands to the commandArray or delay
-	function self.sendCommand(command, value, delay)
-		if delay and tonumber(delay) then
-			self.emitEvent('___' .. command .. '__' , value ).afterSec(delay)
-		else
-			table.insert(self.commandArray, { [command] = value })
-		end
+	-- add domoticz commands to the commandArray
+	function self.sendCommand(command, value)
+		table.insert(self.commandArray, { [command] = value })
+
 		-- return a reference to the newly added item
-		return self.commandArray[#self.commandArray], command, value, delay
+		return self.commandArray[#self.commandArray], command, value
 	end
 
 	-- have domoticz send a push notification
-	function self.notify(subject, message, priority, sound, extra, subSystems, delay)
+	function self.notify(subject, message, priority, sound, extra, subSystems)
 		-- set defaults
 		if (priority == nil) then priority = self.PRIORITY_NORMAL end
 		if (message == nil) then message = '' end
@@ -122,18 +118,18 @@ local function Domoticz(settings)
 				.. '#' .. strip(sound)
 				.. '#' .. strip(extra)
 				.. '#' .. strip(_subSystem)
-				self.sendCommand('SendNotification', data, delay)
+				self.sendCommand('SendNotification', data)
 
 	end
 
 	-- have domoticz send an email
-	function self.email(subject, message, mailTo, delay)
+	function self.email(subject, message, mailTo)
 		if (mailTo == nil) then
 			utils.log('No mail-to is provided', utils.LOG_ERROR)
 		else
 			if (subject == nil) then subject = '' end
 			if (message == nil) then message = '' end
-			self.sendCommand('SendEmail', subject .. '#' .. message .. '#' .. mailTo, delay)
+			self.sendCommand('SendEmail', subject .. '#' .. message .. '#' .. mailTo)
 		end
 	end
 
@@ -161,8 +157,8 @@ local function Domoticz(settings)
 	end
 
 	-- have domoticz send an sms
-	function self.sms(message, delay)
-		self.sendCommand('SendSMS', message, delay)
+	function self.sms(message)
+		self.sendCommand('SendSMS', message)
 	end
 
 	function self.emitEvent(eventname, data)

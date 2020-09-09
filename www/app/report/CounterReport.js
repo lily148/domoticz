@@ -221,10 +221,7 @@ define(['app', 'report/helpers'], function (app, reportHelpers) {
                 orderable: false,
                 data: 'trend',
                 render: function (data) {
-					var ret='<img src="images/';
-					if (vm.device.SwitchTypeVal === 4) ret+="g";
-					ret+=data + '.png">';
-                    return ret;
+                    return '<img src="images/' + data + '.png">'
                 }
             });
 

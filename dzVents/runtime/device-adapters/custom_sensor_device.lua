@@ -18,8 +18,6 @@ return {
 
 		-- from data: sensorType, sensorUnit
 
-		device.sensorValue = tonumber(device.sValue) or device.sValue
-
 		function device.updateCustomSensor(value)
 			return device.update(0, value)
 		end

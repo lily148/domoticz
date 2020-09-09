@@ -76,7 +76,7 @@ bool CNotificationPushover::SendMessageImplementation(
 		int iStatus = root["status"].asInt();
 		if (iStatus != 0)
 			return true;
-		for (const auto& itt : root["errors"])
+		for (auto itt : root["errors"])
 		{
 			_log.Log(LOG_ERROR, "Pushover: Error, %s", itt.asString().c_str());
 		}
