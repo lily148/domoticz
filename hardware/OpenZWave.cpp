@@ -1058,9 +1058,11 @@ bool COpenZWave::GetValueByCommandClass(const uint8_t nodeID, const uint8_t inst
 				continue;
 			}
 			nValue = ittValue;
+			_log.Log(LOG_NORM, "check your problem here", nValue, vGenre);
 			return true;
 		}
 	}
+	_log.Log(LOG_NORM, "check your problem here", "false", "false");
 	return false;
 }
 
