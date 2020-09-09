@@ -1054,15 +1054,15 @@ bool COpenZWave::GetValueByCommandClass(const uint8_t nodeID, const uint8_t inst
 			OpenZWave::ValueID::ValueGenre vGenre = ittValue.GetGenre();
 			if (vGenre != OpenZWave::ValueID::ValueGenre_User)
 			{
-				_log.Log(LOG_ERROR, "check your problem here", vGenre, vGenre);
+				_log.Log(LOG_ERROR, "check your problem here %s %s", vGenre, vGenre);
 				continue;
 			}
 			nValue = ittValue;
-			_log.Log(LOG_ERROR, "check your problem here", nValue, vGenre);
+			_log.Log(LOG_ERROR, "check your problem here %s %s", nValue, vGenre);
 			return true;
 		}
 	}
-	_log.Log(LOG_ERROR, "check your problem here", "false", "false");
+	_log.Log(LOG_ERROR, "check your problem here %s %s", "false", "false");
 	return false;
 }
 
@@ -1081,12 +1081,16 @@ bool COpenZWave::GetValueByCommandClassIndex(const uint8_t nodeID, const uint8_t
 			if (m_pManager->IsValueReadOnly(ittValue) == true)
 				continue;
 			if (vGenre != OpenZWave::ValueID::ValueGenre_User)
+			{
+				_log.Log(LOG_ERROR, "check your problem here %s %s", vGenre, vGenre);
 				continue;
+			}
 			try
 			{
 				if (ittValue.GetIndex() == vIndex)
 				{
 					nValue = ittValue;
+					_log.Log(LOG_ERROR, "check your problem here %s %s", vGenre, vGenre);
 					return true;
 				}
 			}
@@ -1224,6 +1228,7 @@ bool COpenZWave::SwitchLight(_tZWaveDevice* pDevice, const int instanceID, const
 				bFound = (GetValueByCommandClassIndex(pDevice->nodeID, (uint8_t)instanceID, COMMAND_CLASS_SWITCH_MULTILEVEL, ValueID_Index_SwitchMultiLevel::Level, vID) == true);
 			if (bFound)
 			{
+				
 				OpenZWave::ValueID::ValueType vType = vID.GetType();
 				_log.Log(LOG_NORM, "OpenZWave: Domoticz has send a Switch command! NodeID: %d (0x%02x)", pDevice->nodeID, pDevice->nodeID);
 				if (vType == OpenZWave::ValueID::ValueType_Bool)
