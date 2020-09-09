@@ -11,7 +11,13 @@
 #include "../main/mainworker.h"
 #include <iostream>
 
+#define round(a) ( int ) ( a + .5 )
+
+//#define DEBUG_SolarEdgeAPI
+
+#define SE_VOLT_AC 1
 #define SE_VOLT_DC 2
+#define SE_FREQ 1
 
 #ifdef _DEBUG
 	//#define DEBUG_SolarEdgeAPIR_SITE
@@ -23,7 +29,7 @@
 #ifdef DEBUG_SolarEdgeAPIW
 void SaveString2Disk(std::string str, std::string filename)
 {
-	FILE* fOut = fopen(filename.c_str(), "wb+");
+	FILE *fOut = fopen(filename.c_str(), "wb+");
 	if (fOut)
 	{
 		fwrite(str.c_str(), 1, str.size(), fOut);
@@ -50,7 +56,7 @@ std::string ReadFile(std::string filename)
 }
 #endif
 
-SolarEdgeAPI::SolarEdgeAPI(const int ID, const std::string& APIKey) :
+SolarEdgeAPI::SolarEdgeAPI(const int ID, const std::string &APIKey):
 	m_APIKey(APIKey)
 {
 	m_SiteID = 0;
@@ -70,7 +76,7 @@ bool SolarEdgeAPI::StartHardware()
 	//Start worker thread
 	m_thread = std::make_shared<std::thread>(&SolarEdgeAPI::Do_Work, this);
 	SetThreadNameInt(m_thread->native_handle());
-	m_bIsStarted = true;
+	m_bIsStarted=true;
 	sOnConnected(this);
 	return (m_thread != nullptr);
 }
@@ -83,8 +89,8 @@ bool SolarEdgeAPI::StopHardware()
 		m_thread->join();
 		m_thread.reset();
 	}
-	m_bIsStarted = false;
-	return true;
+    m_bIsStarted=false;
+    return true;
 }
 
 void SolarEdgeAPI::Do_Work()
@@ -109,10 +115,10 @@ void SolarEdgeAPI::Do_Work()
 				GetMeterDetails();
 		}
 	}
-	_log.Log(LOG_STATUS, "SolarEdgeAPI Worker stopped...");
+	_log.Log(LOG_STATUS,"SolarEdgeAPI Worker stopped...");
 }
 
-bool SolarEdgeAPI::WriteToHardware(const char* pdata, const unsigned char length)
+bool SolarEdgeAPI::WriteToHardware(const char *pdata, const unsigned char length)
 {
 	return false;
 }
@@ -153,7 +159,7 @@ bool SolarEdgeAPI::GetSite()
 	sURL << "https://monitoringapi.solaredge.com/sites/list?size=1&api_key=" << m_APIKey << "&format=application/json";
 	if (!HTTPClient::GET(sURL.str(), sResult))
 	{
-		_log.Log(LOG_ERROR, "SolarEdgeAPI: Error getting http data (Sites)!");
+		_log.Log(LOG_ERROR, "SolarEdgeAPI: Error getting http data!");
 		return false;
 	}
 #ifdef DEBUG_SolarEdgeAPIW
@@ -203,7 +209,7 @@ void SolarEdgeAPI::GetInverters()
 	sURL << "https://monitoringapi.solaredge.com/equipment/" << m_SiteID << "/list?api_key=" << m_APIKey << "&format=application/json";
 	if (!HTTPClient::GET(sURL.str(), sResult))
 	{
-		_log.Log(LOG_ERROR, "SolarEdgeAPI: Error getting http data (Equipment)!");
+		_log.Log(LOG_ERROR, "SolarEdgeAPI: Error getting http data!");
 		return;
 	}
 #ifdef DEBUG_SolarEdgeAPIW
@@ -264,7 +270,7 @@ void SolarEdgeAPI::GetMeterDetails()
 	}
 }
 
-void SolarEdgeAPI::GetInverterDetails(const _tInverterSettings* pInverterSettings, const int iInverterNumber)
+void SolarEdgeAPI::GetInverterDetails(const _tInverterSettings *pInverterSettings, const int iInverterNumber)
 {
 	std::string sResult;
 	char szTmp[200];
@@ -300,7 +306,7 @@ void SolarEdgeAPI::GetInverterDetails(const _tInverterSettings* pInverterSetting
 	sURL << "https://monitoringapi.solaredge.com/equipment/" << m_SiteID << "/" << pInverterSettings->SN << "/data.json?startTime=" << startDate << "&endTime=" << endDate << "&api_key=" << m_APIKey << "&format=application/json";
 	if (!HTTPClient::GET(sURL.str(), sResult))
 	{
-		_log.Log(LOG_ERROR, "SolarEdgeAPI: Error getting http data (Equipment details)!");
+		_log.Log(LOG_ERROR, "SolarEdgeAPI: Error getting http data!");
 		return;
 	}
 #ifdef DEBUG_SolarEdgeAPIW
@@ -357,37 +363,23 @@ void SolarEdgeAPI::GetInverterDetails(const _tInverterSettings* pInverterSetting
 	if (!reading["temperature"].empty())
 	{
 		float temp = reading["temperature"].asFloat();
-		sprintf(szTmp, "Temp %s", pInverterSettings->name.c_str());
+		sprintf(szTmp, "SolarMain %s", pInverterSettings->name.c_str());
 		SendTempSensor(1 + iInverterNumber, 255, temp, szTmp);
 	}
-
-	char szPhase[30];
-	for (int ii = 0; ii < 3; ii++)
+	if (!reading["L1Data"].empty())
 	{
-		int iPhase = ii + 1;
-		sprintf(szPhase, "L%dData", iPhase);
-		if (!reading[szPhase].empty())
+		if (!reading["L1Data"]["acVoltage"].empty())
 		{
-			if (!reading[szPhase]["acVoltage"].empty())
-			{
-				float acVoltage = reading[szPhase]["acVoltage"].asFloat();
-				sprintf(szTmp, "AC L%d %s", iPhase, pInverterSettings->name.c_str());
-				SendVoltageSensor(iInverterNumber, iPhase, 255, acVoltage, szTmp);
-			}
-			if (!reading[szPhase]["acFrequency"].empty())
-			{
-				float acFrequency = reading[szPhase]["acFrequency"].asFloat();
-				sprintf(szTmp, "Hz L%d %s", iPhase, pInverterSettings->name.c_str());
-				SendCustomSensor(1 + iInverterNumber, iPhase, 255, acFrequency, szTmp, "Hz");
-			}
-			if (!reading[szPhase]["activePower"].empty())
-			{
-				float ActivePower = reading[szPhase]["activePower"].asFloat();
-				sprintf(szTmp, "Power L%d %s", iPhase, pInverterSettings->name.c_str());
-				SendWattMeter(1 + iInverterNumber, iPhase, 255, ActivePower, szTmp);
-			}
+			float acVoltage = reading["L1Data"]["acVoltage"].asFloat();
+			sprintf(szTmp, "AC %s", pInverterSettings->name.c_str());
+			SendVoltageSensor(iInverterNumber, SE_VOLT_AC, 255, acVoltage, szTmp);
+		}
+		if (!reading["L1Data"]["acFrequency"].empty())
+		{
+			float acFrequency = reading["L1Data"]["acFrequency"].asFloat();
+			sprintf(szTmp, "Hz %s", pInverterSettings->name.c_str());
+			SendCustomSensor(1 + iInverterNumber, SE_FREQ, 255, acFrequency, szTmp, "Hz");
 		}
 	}
-
 }
 

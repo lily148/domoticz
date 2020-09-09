@@ -24,10 +24,6 @@ private:
 	std::shared_ptr<std::thread> m_thread;
 	void FetchData();
 	void GetInternalTemperature();
-	void FetchClockSpeeds();
-	void GetInternalARMClockSpeed();
-	void GetInternalV3DClockSpeed();
-	void GetInternalCoreClockSpeed();
 	void GetInternalVoltage();
 	void GetInternalCurrent();
 	void UpdateSystemSensor(const std::string& qType, const int dindex, const std::string& devName, const std::string& devValue);

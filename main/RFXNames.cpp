@@ -245,7 +245,6 @@ static const STR_TABLE_SINGLE	HardwareTypeTable[] =
 	{ HTYPE_BuienRadar, "Buienradar (Dutch Weather Information)",					"BuienRadar" },
 	{ HTYPE_AccuWeather, "AccuWeather (Weather Lookup)",							"AccuWeather" },
 	{ HTYPE_Tesla, "Tesla Model S/3/X",												"Tesla" },
-	{ HTYPE_Mercedes, "Mercedes ME Connect",										"Mercedes" },
 	{ HTYPE_BleBox, "BleBox devices",												"BleBox" },
 	{ HTYPE_Ec3kMeterTCP, "Energy Count 3000/ NETBSEM4/ La Crosse RT-10 LAN",		"Ec3kMeter" },
 	{ HTYPE_OpenWeatherMap, "Open Weather Map",										"OpenWeatherMap" },
@@ -792,10 +791,10 @@ const char* RFX_Type_SubType_Desc(const unsigned char dType, const unsigned char
 	{ pTypeThermostat, sTypeThermSetpoint, "SetPoint" },
 	{ pTypeThermostat, sTypeThermTemperature, "Temperature" },
 
-	{ pTypeChime, sTypeByronSX, "Byron SX" },
+	{ pTypeChime, sTypeByronSX, "ByronSX" },
 	{ pTypeChime, sTypeByronMP001, "Byron MP001" },
 	{ pTypeChime, sTypeSelectPlus, "SelectPlus" },
-	{ pTypeChime, sTypeByronBY, "Byron BY" },
+	{ pTypeChime, sTypeByronBY, "SelectPlus3" },
 	{ pTypeChime, sTypeEnvivo, "Envivo" },
 	{ pTypeChime, sTypeAlfawise, "Alfawise" },
 

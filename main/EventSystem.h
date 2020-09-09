@@ -70,10 +70,6 @@ public:
 		int signalLevel;
 		int unit;
 		int hardwareID;
-		float AddjValue;
-		float AddjMulti;
-		float AddjValue2;
-		float AddjMulti2;
 		std::map<uint8_t, int> JsonMapInt;
 		std::map<uint8_t, float> JsonMapFloat;
 		std::map<uint8_t, bool> JsonMapBool;

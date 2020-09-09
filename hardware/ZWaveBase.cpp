@@ -27,13 +27,6 @@ ZWaveBase::ZWaveBase() :
 	m_updateTime(0),
 	m_ControllerCommandStartTime(0)
 {
-	m_bNodeReplaced=true;
-	m_NodeToBeReplaced=0;
-
-	m_bHasNodeFailedDone=false;
-	m_sHasNodeFailedResult="";
-	m_HasNodeFailedIdx=-1;
-
 	m_LastIncludedNode = 0;
 	m_bControllerCommandInProgress = false;
 	m_bControllerCommandCanceled = false;
@@ -449,37 +442,8 @@ void ZWaveBase::SendDevice2Domoticz(const _tZWaveDevice* pDevice)
 			//No kWh meter, send as normal Power device
 			SendWattMeter(pDevice->nodeID, pDevice->instanceID, BatLevel, pDevice->floatValue, "Power Meter");
 		}
-		pEnergyDevice = FindDeviceEx(pDevice->nodeID, pDevice->orgInstanceID, ZDTYPE_SENSOR_KVAH);
-		if (pEnergyDevice)
-		{
-			if (pEnergyDevice->bValidValue)
-			{
-				SendKwhMeter(pEnergyDevice->nodeID, 0x40 + pEnergyDevice->orgInstanceID, BatLevel, pDevice->floatValue, pEnergyDevice->floatValue / pEnergyDevice->scaleMultiply, "kVah Meter");
-			}
-		}
-		pEnergyDevice = FindDeviceEx(pDevice->nodeID, pDevice->orgInstanceID, ZDTYPE_SENSOR_KVAR);
-		if (pEnergyDevice)
-		{
-			if (pEnergyDevice->bValidValue)
-			{
-				SendKwhMeter(pEnergyDevice->nodeID, 0x60 + pEnergyDevice->orgInstanceID, BatLevel, pDevice->floatValue, pEnergyDevice->floatValue / pEnergyDevice->scaleMultiply, "kVar Meter");
-			}
-		}
-		pEnergyDevice = FindDeviceEx(pDevice->nodeID, pDevice->orgInstanceID, ZDTYPE_SENSOR_KVARH);
-		if (pEnergyDevice)
-		{
-			if (pEnergyDevice->bValidValue)
-			{
-				SendKwhMeter(pEnergyDevice->nodeID, 0x80 + pEnergyDevice->orgInstanceID, BatLevel, pDevice->floatValue, pEnergyDevice->floatValue / pEnergyDevice->scaleMultiply, "kVarh Meter");
-			}
-		}
 	}
-	else if (
-		(pDevice->devType == ZDTYPE_SENSOR_POWERENERGYMETER)
-		|| (pDevice->devType == ZDTYPE_SENSOR_KVAH)
-		|| (pDevice->devType == ZDTYPE_SENSOR_KVAR)
-		|| (pDevice->devType == ZDTYPE_SENSOR_KVARH)
-		)
+	else if (pDevice->devType == ZDTYPE_SENSOR_POWERENERGYMETER)
 	{
 		RBUF tsen;
 		memset(&tsen, 0, sizeof(RBUF));
@@ -517,14 +481,14 @@ void ZWaveBase::SendDevice2Domoticz(const _tZWaveDevice* pDevice)
 		{
 			bHaveValidPowerDevice = pPowerDevice->bValidValue;
 		}
-		if (pDevice->devType == ZDTYPE_SENSOR_POWERENERGYMETER)
-			SendKwhMeter(pDevice->nodeID, pDevice->instanceID, BatLevel, (bHaveValidPowerDevice) ? pPowerDevice->floatValue : 0, pDevice->floatValue / pDevice->scaleMultiply, "kWh Meter");
-		else if (pDevice->devType == ZDTYPE_SENSOR_KVAH)
-			SendKwhMeter(pDevice->nodeID, 0x40 + pDevice->orgInstanceID, BatLevel, (bHaveValidPowerDevice) ? pPowerDevice->floatValue : 0, pDevice->floatValue / pDevice->scaleMultiply, "kVah Meter");
-		else if (pDevice->devType == ZDTYPE_SENSOR_KVAR)
-			SendKwhMeter(pDevice->nodeID, 0x60 + pDevice->orgInstanceID, BatLevel, (bHaveValidPowerDevice) ? pPowerDevice->floatValue : 0, pDevice->floatValue / pDevice->scaleMultiply, "kVar Meter");
-		else if (pDevice->devType == ZDTYPE_SENSOR_KVARH)
-			SendKwhMeter(pDevice->nodeID, 0x80 + pDevice->orgInstanceID, BatLevel, (bHaveValidPowerDevice) ? pPowerDevice->floatValue : 0, pDevice->floatValue / pDevice->scaleMultiply, "kVarh Meter");
+		if (bHaveValidPowerDevice)
+		{
+			SendKwhMeter(pDevice->nodeID, pDevice->instanceID, BatLevel, pPowerDevice->floatValue, pDevice->floatValue / pDevice->scaleMultiply, "kWh Meter");
+		}
+		else
+		{
+			SendKwhMeter(pDevice->nodeID, pDevice->instanceID, BatLevel, 0, pDevice->floatValue / pDevice->scaleMultiply, "kWh Meter");
+		}
 	}
 	else if (pDevice->devType == ZDTYPE_SENSOR_VOLTAGE)
 	{

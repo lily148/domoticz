@@ -6085,7 +6085,8 @@ function AddDataToUtilityChart(data, chart, switchtype) {
 			id: 'counter',
 			name: valueQuantity,
 			tooltip: {
-				valueSuffix: ' ' + valueUnits
+				valueSuffix: ' ' + valueUnits,
+				valueDecimals: 0
 			},
 			color: 'rgba(3,190,252,0.8)',
 			yAxis: 0
