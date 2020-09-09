@@ -1053,7 +1053,10 @@ bool COpenZWave::GetValueByCommandClass(const uint8_t nodeID, const uint8_t inst
 				continue;
 			OpenZWave::ValueID::ValueGenre vGenre = ittValue.GetGenre();
 			if (vGenre != OpenZWave::ValueID::ValueGenre_User)
+			{
+				_log.Log(LOG_NORM, "check your problem here", vGenre, vGenre);
 				continue;
+			}
 			nValue = ittValue;
 			return true;
 		}
