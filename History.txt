@@ -2,6 +2,9 @@ Version 2020.xxxx (xxxx)
 - Implemented: Added optional parameter 'level' to addlogmessage JSON
 - Implemented: Allow complete IPv6 address in local network setting
 - Implemented: Internal light commands for Fan types Casafan, FT1211R, Falmec, LucciAirDCII, IthoECO and Novy
+- Implemented: Inverted energy icon colors in report
+- Implemented: Mercedes Me API's (BYOCAR) as an (e)Vehicle supporting lock/open, odo, fuellevel
+- Implemented: Meteorologisk (Meteorologisk institutt Norway) hardware support
 - Implemented: P1 Meter, added support for Encryption
 - Implemented: RTL433, added RF Signal Strength in device tab based on reported SNR
 - Implemented: RTL433, added Pressure (PSI) type
@@ -9,7 +12,9 @@ Version 2020.xxxx (xxxx)
 - Implemented: RTL433, switched to Json input
 - Implemented: ZWave, Legend and tooltips in Neighbours overview
 - Implemented: The following sensor types now support RSSI: Distance Sensor, Moisture Sensor, Watt Meter, kWh Meter
-- Updated: dzVents version 3.0.9 ( https://www.domoticz.com/wiki/DzVents:_next_generation_LUA_scripting#History )
+- Implemented: Websocket notification for secondary/sub devices
+- Implemented: ZWave, Legend and tooltips in Neighbor�s overview
+- Updated: dzVents version 3.0.12 ( https://www.domoticz.com/wiki/DzVents:_next_generation_LUA_scripting#History )
 - Updated: eVehicles, added ODO meter, unlock/open alert, max charge level to Tesla module
 - Updated: OpenZWave configuration files
 - Updated: TTNMQTT, improved Improved calculation and storage of signal-levels
@@ -18,7 +23,7 @@ Version 2020.xxxx (xxxx)
 Version 2020.2 (April 26th 2020)
 - Implemented: GUI: New Update controller code
 - Implemented: GUI: Real-time updates of history-logs on device / scene changes
-- Fixed: Battery level Real-time updates 
+- Fixed: Battery level Real-time updates
 - Fixed: Daikin wifi adaptor module
 - Fixed: Delete device now propagates to all relevant tables
 - Fixed: Possible security issue in the websocket layer
