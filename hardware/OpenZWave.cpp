@@ -1053,16 +1053,11 @@ bool COpenZWave::GetValueByCommandClass(const uint8_t nodeID, const uint8_t inst
 				continue;
 			OpenZWave::ValueID::ValueGenre vGenre = ittValue.GetGenre();
 			if (vGenre != OpenZWave::ValueID::ValueGenre_User)
-			{
-				_log.Log(LOG_ERROR, "check your problem here %s %s", vGenre, vGenre);
 				continue;
-			}
 			nValue = ittValue;
-			_log.Log(LOG_ERROR, "check your problem here %s %s", nValue, vGenre);
 			return true;
 		}
 	}
-	_log.Log(LOG_ERROR, "check your problem here %s %s", "false", "false");
 	return false;
 }
 
@@ -1081,16 +1076,12 @@ bool COpenZWave::GetValueByCommandClassIndex(const uint8_t nodeID, const uint8_t
 			if (m_pManager->IsValueReadOnly(ittValue) == true)
 				continue;
 			if (vGenre != OpenZWave::ValueID::ValueGenre_User)
-			{
-				_log.Log(LOG_ERROR, "check your problem here %s %s", vGenre, vGenre);
 				continue;
-			}
 			try
 			{
 				if (ittValue.GetIndex() == vIndex)
 				{
 					nValue = ittValue;
-					_log.Log(LOG_ERROR, "check your problem here %s %s", vGenre, vGenre);
 					return true;
 				}
 			}
