@@ -500,7 +500,7 @@ void CheckForOnboardSensors()
 		while (!infile.eof())
 		{
 			getline(infile, sLine);
-			/*if (
+			if (
 				(sLine.find("BCM2708") != std::string::npos) ||
 				(sLine.find("BCM2709") != std::string::npos) ||
 				(sLine.find("BCM2711") != std::string::npos) ||
@@ -534,7 +534,7 @@ void CheckForOnboardSensors()
 						bHasInternalClockSpeeds = true;
 					}
 				}
-			}*/
+			}
 		}
 	}
 
