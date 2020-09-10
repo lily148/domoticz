@@ -42,7 +42,7 @@
 	#include <syslog.h>
 	#include <errno.h>
 	#include <fcntl.h>
-	#include <string.h>
+	#include <string.h> 
 #endif
 
 const char *szHelp =
@@ -114,7 +114,7 @@ static const _facilities facilities[] =
 	{ "local5", LOG_LOCAL5 },
 	{ "local6", LOG_LOCAL6 },
 	{ "local7", LOG_LOCAL7 }
-};
+}; 
 std::string logfacname = "user";
 #endif
 std::string szStartupFolder;
@@ -174,7 +174,7 @@ bool g_bUseWatchdog = true;
 bool g_bIsWSL = false;
 
 #define DAEMON_NAME "domoticz"
-#define PID_FILE "/var/run/domoticz.pid"
+#define PID_FILE "/var/run/domoticz.pid" 
 
 std::string daemonname = DAEMON_NAME;
 std::string pidfile = PID_FILE;
@@ -219,7 +219,7 @@ void daemonize(const char *rundir, const char *pidfile)
 #ifndef WIN32
 	sigaction(SIGHUP,  &newSigAction, NULL);    // catch HUP, for log rotation
 #endif
-
+	
 	/* Fork*/
 	pid = fork();
 
@@ -228,7 +228,7 @@ void daemonize(const char *rundir, const char *pidfile)
 		/* Could not fork */
 		exit(EXIT_FAILURE);
 	}
-
+    
 	if (pid > 0)
 	{
 		/* Child created ok, so exit parent process */
@@ -473,22 +473,9 @@ void GetAppVersion()
 #if !defined WIN32
 void CheckForOnboardSensors()
 {
-	//Check if we have vcgencmd (are running on a RaspberryPi)
-	//
-	int returncode=0;
-	std::vector<std::string> ret = ExecuteCommandAndReturn (VCGENCMDTEMPCOMMAND,returncode);
-
-	if (ret.empty()) {
-		// _log.Log(LOG_STATUS,"No vcgencmd detected (empty string)");
-	} else {
-		std::string tmpline=ret[0];
-		if (tmpline.find("temp=")==std::string::npos) {
-			// _log.Log(LOG_STATUS,"Wrong vcgencmd output (%s)",tmpline.c_str());
-		} else {
-			_log.Log(LOG_STATUS,"Hardware Monitor: Raspberry Pi detected");
-			//Core temperature of BCM2835 SoC
-			szInternalTemperatureCommand = VCGENCMDTEMPCOMMAND;
-			bHasInternalTemperature = true;
+	//Check if we are running on a RaspberryPi
+	std::string sLine = "";
+	std::ifstream infile;
 
 #if defined(__FreeBSD__)
 	infile.open("/compat/linux/proc/cpuinfo");
@@ -527,7 +514,7 @@ void CheckForOnboardSensors()
 						szInternalTemperatureCommand = VCGENCMDTEMPCOMMAND;
 						bHasInternalTemperature = true;
 
-						//PI Clock speeds
+						//PI Clock speeds	
 						szInternalARMSpeedCommand = VCGENCMDARMSPEEDCOMMAND;
 						szInternalV3DSpeedCommand = VCGENCMDV3DSPEEDCOMMAND;
 						szInternalCoreSpeedCommand = VCGENCMDCORESPEEDCOMMAND;
@@ -536,6 +523,7 @@ void CheckForOnboardSensors()
 				}
 			}
 		}
+		infile.close();
 	}
 
 	if (!bHasInternalTemperature)
@@ -748,10 +736,10 @@ int main(int argc, char**argv)
 {
 #if defined WIN32
 #ifndef _DEBUG
-	CreateMutexA(0, FALSE, "Local\\Domoticz");
-	if(GetLastError() == ERROR_ALREADY_EXISTS) {
+	CreateMutexA(0, FALSE, "Local\\Domoticz"); 
+	if(GetLastError() == ERROR_ALREADY_EXISTS) { 
 		MessageBox(HWND_DESKTOP,"Another instance of Domoticz is already running!","Domoticz",MB_OK);
-		return 1;
+		return 1; 
 	}
 #endif //_DEBUG
 	RedirectIOToConsole();
@@ -759,7 +747,7 @@ int main(int argc, char**argv)
 
 	CCmdLine cmdLine;
 
-	// parse argc,argv
+	// parse argc,argv 
 #if defined WIN32
 	cmdLine.SplitLine(__argc, __argv);
 #else
@@ -855,7 +843,7 @@ int main(int argc, char**argv)
 
 	/* call srand once for the entire app */
 	std::srand((unsigned int)std::time(nullptr));
-	szRandomUUID = GenerateUUID();
+	szRandomUUID = GenerateUUID();    
 
 	GetAppVersion();
 	DisplayAppVersion();
@@ -1186,15 +1174,15 @@ int main(int argc, char**argv)
 	{
 		int logfacility = 0;
 
-		for ( size_t idx = 0; idx < sizeof(facilities)/sizeof(facilities[0]); idx++ )
+		for ( size_t idx = 0; idx < sizeof(facilities)/sizeof(facilities[0]); idx++ ) 
 		{
-			if (strcmp(facilities[idx].facname, logfacname.c_str()) == 0)
+			if (strcmp(facilities[idx].facname, logfacname.c_str()) == 0) 
 			{
 				logfacility = facilities[idx].facvalue;
 				break;
 			}
-		}
-		if ( logfacility == 0 )
+		} 
+		if ( logfacility == 0 ) 
 		{
 			_log.Log(LOG_ERROR, "%s is an unknown syslog facility", logfacname.c_str());
 			return 1;
