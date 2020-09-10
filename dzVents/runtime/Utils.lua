@@ -89,12 +89,16 @@ function self.stringToSeconds(str)
 
 		local delta
 		local deltaT = timeDelta(str)
-		for _, day in ipairs(num2Days) do
-			if str:lower():find(day) then
-				local newDelta = ( days2Num[day] - now.wday + 7 ) % 7 * daySeconds + deltaT
-				if newDelta < 0 then newDelta = newDelta + weekSeconds end
-				if delta == nil or newDelta < delta then delta = newDelta end
+		if str:match(' on ') then
+			for _, day in ipairs(num2Days) do
+				if str:lower():find(day) then
+					local newDelta = ( days2Num[day] - now.wday + 7 ) % 7 * daySeconds + deltaT
+					if newDelta < 0 then newDelta = newDelta + weekSeconds end
+					if delta == nil or newDelta < delta then delta = newDelta end
+				end
 			end
+		else
+			if deltaT < 0 then deltaT = deltaT + daySeconds end
 		end
 
 		if delta == nil and deltaT < 0 then deltaT = deltaT + weekSeconds end
@@ -190,21 +194,30 @@ function self.isJSON(str, content)
 
 	local str = str or ''
 	local content = content or ''
-	local jsonPattern = '^%s*%[*%s*{.+}%s*%]*%s*$'
-	local ret = str:match(jsonPattern) == str  or content:find('application/json')
+	local jsonPatternOK = '^%s*%[*%s*{.+}%s*%]*%s*$'
+	local jsonPatternOK2 = '^%s*%[.+%]*%s*$'
+	local ret = ( str:match(jsonPatternOK) == str ) or ( str:match(jsonPatternOK2) == str ) or content:find('application/json')
 	return ret ~= nil
-
 end
 
 function self.fromJSON(json, fallback)
 
-	if json and self.isJSON(json) then
+	if not(json) then
+		return fallback
+	end
+
+	if json:find("'") then
+		local _, singleQuotes = json:gsub("'","'")
+		local _, doubleQuotes = json:gsub('"','"')
+		if singleQuotes > doubleQuotes then
+			json = json:gsub("'",'"')
+		end
+	end
+
+	if self.isJSON(json) then
+
 		local parse = function(j)
 			return jsonParser:decode(j)
-		end
-
-		if json == nil then
-			return fallback
 		end
 
 		ok, results = pcall(parse, json)
